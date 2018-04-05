@@ -1,0 +1,13 @@
+[Unit]
+Description=Pi Sensor
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/pi-sensor/sensor.py
+Restart=always
+RestartSec=5
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
