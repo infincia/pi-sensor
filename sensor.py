@@ -19,7 +19,7 @@ DEVICE_NAME = platform.node()
 
 mqtt = AWSIoTMQTTClient(DEVICE_NAME)
 mqtt.configureEndpoint("a2ilo8j9t13k8m.iot.us-east-1.amazonaws.com", 8883)
-mqtt.configureCredentials("/etc/aws/root-CA.crt", "/etc/aws/Picam1.private.key", "/etc/aws/Picam1.cert.pem")
+mqtt.configureCredentials("/etc/aws/root-CA.crt", "/etc/aws/" + DEVICE_NAME + ".private.key", "/etc/aws/" + DEVICE_NAME + ".cert.pem")
 mqtt.configureOfflinePublishQueueing(-1)
 mqtt.configureDrainingFrequency(2)
 mqtt.configureConnectDisconnectTimeout(10)
