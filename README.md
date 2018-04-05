@@ -23,6 +23,9 @@ publish that instead, the script can be edited very easily.
 Leaving the sensor disconnected will not break anything else, the other values
 should still be published to AWS IoT.
 
+**Note:** There is nothing in this script that retrieves or displays the sensor values,
+this is just the Pi sensor node component. 
+
 #### Planned features
 
 * Single configuration file for all common settings/credentials
@@ -31,23 +34,36 @@ should still be published to AWS IoT.
 
 #### Usage
 
-To use this code, clone the repo to `/opt/pi-sensor` and put your AWS IoT
-certificate credentials in `/etc/aws`. These are the same files that you get
-by downloading the `connect_device_package.zip` archive when onboarding from AWS
-IoT dashboard.
+To use this code, clone the repo to `/opt/pi-sensor`:
+
+    git clone https://github.com/steveatinfincia/pi-sensor.git
+
+Then register a new device in the AWS IoT dashboard, using the Linux + Python SDK selection,
+and **name it according to the hostname of your Pi**. The code currently uses the hostname for 
+MQTT topics, and for the filenames of the AWS IoT credential files. This will change soon, but
+for now make things easy and use the same name for the Pi hostname and the AWS IoT device name.
+
+AWS IoT dashboard will then download a `connect_device_package.zip` archive, put this archive
+in `/etc/aws/` on your pi and unzip it:
+
+    mkdir /etc/aws
+    mv path/to/connect_device_package.zip /etc/aws/
+    cd /etc/aws
+    unzip connect_device_package.zip
+
+You will then need to run the `start.sh` script provided by AWS IoT so that it can install
+the Python SDK and retrieve the AWS IoT root CA certificate:
+
+    /bin/bash /etc/aws/start.sh
 
 You will need to edit the endpoint in `sensor.py` so that it matches the one
-listed in your AWS account's IoT dashboard -> Settings area.
+listed in your AWS account's IoT dashboard -> Settings area. This will change soon
+but for now it is hardcoded.
 
-You will also need to install the Python dependencies. Only PureIO is
-available via pip, the AWS IoT library must be cloned and installed manually:
+You will also need to install the Python dependencies for the Si7021 sensor, if you are using
+one:
 
     pip install Adafruit-PureIO
-
-    git clone https://github.com/aws/aws-iot-device-sdk-python.git
-    cd aws-iot-device-sdk-python
-    sudo python setup.py install
-
 
 Then you can enable the systemd unit:
 
@@ -55,6 +71,6 @@ Then you can enable the systemd unit:
 
 And now start it:
 
-    systemctl start /opt/pi-sensor/sensor.service
+    systemctl start sensor
 
-
+Feel free to open an issue on Github if something doesn't work right :)
