@@ -210,31 +210,38 @@ def loop():
 		if now - last > 60:
 			last = now
 
+			sensor_message = { "n": DEVICE_NAME }
 
 			if si7021_enabled:
 				temperature, humidity = get_sensor_values()
 				if temperature is not None and humidity is not None:
 					if awsiot_enabled:
 						push_sensor_values_mqtt(temperature, humidity)
+					sensor_message["t"] = "{0:.2f}".format(temperature)
+					sensor_message["h"] = "{0:.2f}".format(humidity)
 
 			if disk_enabled:
 				disk_percent = get_disk_stats()
 				if disk_percent is not None:
 					if awsiot_enabled:
 						push_disk_stats_mqtt(disk_percent)
+					sensor_message["d"] = "{0:.2f}".format(disk_percent)
 
 			if mem_enabled:
 				mem_percent = get_mem_stats()
 				if mem_percent is not None:
 					if awsiot_enabled:
 						push_mem_stats_mqtt(mem_percent)
+					sensor_message["m"] = "{0:.2f}".format(mem_percent)
 
 			if cpu_enabled:
 				cpu_percent = get_cpu_stats()
 				if cpu_percent is not None:
 					if awsiot_enabled:
 						push_cpu_stats_mqtt(cpu_percent)
+					sensor_message["c"] = "{0:.2f}".format(cpu_percent)
 
+			json_packet = json.dumps(sensor_message, sort_keys = True)
 
 
 if __name__ == "__main__":
