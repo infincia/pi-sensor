@@ -245,6 +245,15 @@ def loop():
 				if radio.sendWithRetry(rfm69_gateway, json_packet, 3, 20):
 					print "Radio ack recieved"
 
+		if rfm69_enabled:
+		    radio.receiveBegin()
+		    if not radio.receiveDone():
+		        continue
+		    print "%s from %s RSSI:%s" % ("".join([chr(letter) for letter in radio.DATA]), radio.SENDERID, radio.RSSI)
+		    if radio.ACKRequested():
+		        radio.sendACK()
+
+
 if __name__ == "__main__":
 	try:
 		loop()
