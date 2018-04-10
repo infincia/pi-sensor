@@ -71,7 +71,6 @@ def get_sensor_values():
 
 	except Exception as e:
 		print("Warning: failed to get sensor data: ", e)
-		pass
 
 	return temperature, humidity
 
@@ -97,7 +96,6 @@ def get_disk_stats():
 		mqtt.publish(DEVICE_NAME + '/disk', disk_percent, 0)
 	except Exception as e:
 		print("Warning: failed to get disk data: ", e)
-		pass
 
 	return disk_percent
 
@@ -126,7 +124,6 @@ def get_system_stats():
 		mqtt.publish(DEVICE_NAME + '/cpu', cpu_percent, 0)
 	except Exception as e:
 		print("Warning: failed to update mqtt: ", e)
-		pass
 
 	return mem_percent, cpu_percent
 
