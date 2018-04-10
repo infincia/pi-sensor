@@ -25,7 +25,13 @@ mqtt.configureDrainingFrequency(2)
 mqtt.configureConnectDisconnectTimeout(10)
 mqtt.configureMQTTOperationTimeout(5)
 
-def update_sensor():
+
+
+
+def get_sensor_values():
+	temperature = None
+	humidity = None
+
 	try:
 		# Get I2C bus
 		bus = smbus.SMBus(1)
@@ -61,16 +67,27 @@ def update_sensor():
 		temperature = ((data0 * 256 + data1) * 175.72 / 65536.0) - 46.85
 
 		#humidity, temperature = Adafruit_DHT.read_retry(11, DHT_PIN)
-		fahrenheit = (temperature * 1.8) + 32
+		temperature = (temperature * 1.8) + 32
 
-		mqtt.publish(DEVICE_NAME + '/temperature', fahrenheit, 0)
-		mqtt.publish(DEVICE_NAME + '/humidity', humidity, 0)
 	except Exception as e:
 		print("Warning: failed to get sensor data: ", e)
 		pass
 
+	return temperature, humidity
 
-def update_disk():
+def push_sensor_values_mqtt(temperature, humidity):
+	try:
+		mqtt.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
+		mqtt.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
+	except Exception as e:
+		print("Warning: failed to push sensor values to mqtt")
+
+
+
+
+def get_disk_stats():
+	disk_percent = None
+
 	try:
 		disk = psutil.disk_usage('/')
 		free = round(disk.free/1024.0/1024.0/1024.0,1)
@@ -82,8 +99,22 @@ def update_disk():
 		print("Warning: failed to get disk data: ", e)
 		pass
 
+	return disk_percent
 
-def update_stats():
+
+def push_disk_stats_mqtt(disk_percent):
+	try:
+		mqtt.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
+	except Exception as e:
+		print("Warning: failed to push disk stats to mqtt: ", e)
+
+
+
+
+def get_system_stats():
+	mem_percent = None
+	cpu_percent = None
+
 	try:
 		cpu_percent = psutil.cpu_percent()
 		memory = psutil.virtual_memory()
@@ -97,15 +128,39 @@ def update_stats():
 		print("Warning: failed to update mqtt: ", e)
 		pass
 
+	return mem_percent, cpu_percent
+
+
+def push_system_stats_mqtt(mem_percent, cpu_percent):
+	try:
+		mqtt.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
+		mqtt.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
+	except Exception as e:
+		print("Warning: failed to push system stats to mqtt: ", e)
+
+
+
+
 
 def loop():
 	print 'Connecting...'
 	mqtt.connect()
 
 	while True:
-		update_sensor()
-		update_disk()
-		update_stats()
+		print 'getting sensor values'
+		temperature, humidity = get_sensor_values()
+		if temperature is not None and humidity is not None:
+			push_sensor_values_mqtt(temperature, humidity)
+		print 'getting disk stats'
+		disk_percent = get_disk_stats()
+		if disk_percent is not None:
+			push_disk_stats_mqtt(disk_percent)
+
+		print 'getting system stats'
+		mem_percent, cpu_percent = get_system_stats()
+		if mem_percent is not None and cpu_percent is not None:
+			push_system_stats_mqtt(mem_percent, cpu_percent)
+
 
 		time.sleep(60)
 
