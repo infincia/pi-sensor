@@ -1,0 +1,4 @@
+psutil
+Adafruit_PureIO
+toml
+anyconfig
