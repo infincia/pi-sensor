@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 
 import time
 import psutil
@@ -260,7 +261,19 @@ def loop():
 
 			if radio.SENDERID != rfm69_gateway:
 				continue
-				
+
+			try:
+				command_message = json.loads(received_message)
+				command = command_message['c']
+				if command == 'reboot':
+					print "Pi Sensor %s rebooting..." % DEVICE_NAME
+					os.system('reboot')
+				else:
+					print "Recevied unknown command: %s" % command
+			except:
+				print "Received invalid JSON message, ignoring: %s" % received_message
+
+
 if __name__ == "__main__":
 	try:
 		loop()
