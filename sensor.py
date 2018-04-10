@@ -243,6 +243,9 @@ def loop():
 
 			json_packet = json.dumps(sensor_message, sort_keys = True)
 
+			if rfm69_enabled:
+				if radio.sendWithRetry(rfm69_gateway, json_packet, 3, 20):
+					print "Radio ack recieved"
 
 if __name__ == "__main__":
 	try:
