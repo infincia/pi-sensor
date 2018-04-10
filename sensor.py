@@ -10,20 +10,45 @@ import time
 import argparse
 import json
 
+import anyconfig
 
-import Adafruit_PureIO.smbus as smbus
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+conf = anyconfig.load(["/opt/pi-sensor/defaults.toml", "/etc/pi-sensor/config.toml"], ignore_missing=True, ac_merge=anyconfig.MS_REPLACE)
 
-DEVICE_NAME = platform.node()
+update_interval = conf['update_interval']
+
+si7021_enabled = conf['si7021']['enabled']
+awsiot_enabled = conf['awsiot']['enabled']
+
+disk_enabled = conf['disk']['enabled']
+mem_enabled = conf['mem']['enabled']
+cpu_enabled = conf['cpu']['enabled']
+
+DEVICE_NAME = conf['name']
+
+print "Pi Sensor {0} running".format(DEVICE_NAME)
+
+if si7021_enabled:
+	print "si7021 enabled"
+	import Adafruit_PureIO.smbus as smbus
 
 
-mqtt = AWSIoTMQTTClient(DEVICE_NAME)
-mqtt.configureEndpoint("a2ilo8j9t13k8m.iot.us-east-1.amazonaws.com", 8883)
-mqtt.configureCredentials("/etc/aws/root-CA.crt", "/etc/aws/" + DEVICE_NAME + ".private.key", "/etc/aws/" + DEVICE_NAME + ".cert.pem")
-mqtt.configureOfflinePublishQueueing(-1)
-mqtt.configureDrainingFrequency(2)
-mqtt.configureConnectDisconnectTimeout(10)
-mqtt.configureMQTTOperationTimeout(5)
+
+if awsiot_enabled:
+	print "AWS IoT enabled"
+	from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+
+	awsiot_endpoint = conf['awsiot']['endpoint']
+	awsiot_ca = conf['awsiot']['ca']
+	awsiot_cert = conf['awsiot']['cert']
+	awsiot_key = conf['awsiot']['key']
+
+	mqtt = AWSIoTMQTTClient(DEVICE_NAME)
+	mqtt.configureEndpoint(awsiot_endpoint, 8883)
+	mqtt.configureCredentials(awsiot_ca, awsiot_key, awsiot_cert)
+	mqtt.configureOfflinePublishQueueing(-1)
+	mqtt.configureDrainingFrequency(2)
+	mqtt.configureConnectDisconnectTimeout(10)
+	mqtt.configureMQTTOperationTimeout(5)
 
 
 
@@ -155,7 +180,8 @@ def push_cpu_stats_mqtt(cpu_percent):
 
 def loop():
 	print 'Connecting...'
-	mqtt.connect()
+	if awsiot_enabled:
+		mqtt.connect()
 
 	last = time.time()
 
@@ -166,21 +192,31 @@ def loop():
 		if now - last > 60:
 			last = now
 
-			temperature, humidity = get_sensor_values()
-			if temperature is not None and humidity is not None:
-				push_sensor_values_mqtt(temperature, humidity)
 
-			disk_percent = get_disk_stats()
-			if disk_percent is not None:
-				push_disk_stats_mqtt(disk_percent)
-			mem_percent = get_mem_stats()
+			if si7021_enabled:
+				temperature, humidity = get_sensor_values()
+				if temperature is not None and humidity is not None:
+					if awsiot_enabled:
+						push_sensor_values_mqtt(temperature, humidity)
 
-			if mem_percent is not None:
-				push_mem_stats_mqtt(mem_percent)
-			cpu_percent = get_cpu_stats()
+			if disk_enabled:
+				disk_percent = get_disk_stats()
+				if disk_percent is not None:
+					if awsiot_enabled:
+						push_disk_stats_mqtt(disk_percent)
 
-			if cpu_percent is not None:
-				push_cpu_stats_mqtt(cpu_percent)
+			if mem_enabled:
+				mem_percent = get_mem_stats()
+				if mem_percent is not None:
+					if awsiot_enabled:
+						push_mem_stats_mqtt(mem_percent)
+
+			if cpu_enabled:
+				cpu_percent = get_cpu_stats()
+				if cpu_percent is not None:
+					if awsiot_enabled:
+						push_cpu_stats_mqtt(cpu_percent)
+
 
 
 if __name__ == "__main__":
