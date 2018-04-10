@@ -242,3 +242,7 @@ if __name__ == "__main__":
 		loop()
 	except Exception as e:
 		print "Exception occurred during loop: {0}".format(e)
+	finally:
+		if rfm69_enabled:
+			# try to ensure everything gets reset
+			radio.shutdown()
