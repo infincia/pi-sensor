@@ -66,7 +66,7 @@ def get_sensor_values():
 		# Convert the data
 		temperature = ((data0 * 256 + data1) * 175.72 / 65536.0) - 46.85
 
-		#humidity, temperature = Adafruit_DHT.read_retry(11, DHT_PIN)
+		# Convert celsius to fahrenheit
 		temperature = (temperature * 1.8) + 32
 
 	except Exception as e:
