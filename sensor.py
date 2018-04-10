@@ -162,6 +162,9 @@ def loop():
 		time.sleep(60)
 
 
-if __name__ == "__main__":
 
-	loop()
+if __name__ == "__main__":
+	try:
+		loop()
+	except Exception as e:
+		print "Exception occurred during loop: {0}".format(e)
