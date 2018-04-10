@@ -109,12 +109,10 @@ def push_disk_stats_mqtt(disk_percent):
 
 
 
-def get_system_stats():
+def get_mem_stats():
 	mem_percent = None
-	cpu_percent = None
 
 	try:
-		cpu_percent = psutil.cpu_percent()
 		memory = psutil.virtual_memory()
 		available = round(memory.available/1024.0/1024.0,1)
 		total = round(memory.total/1024.0/1024.0,1)
@@ -123,17 +121,33 @@ def get_system_stats():
 		mqtt.publish(DEVICE_NAME + '/ram', mem_percent, 0)
 		mqtt.publish(DEVICE_NAME + '/cpu', cpu_percent, 0)
 	except Exception as e:
-		print("Warning: failed to get system stats: ", e)
+		print("Warning: failed to get mem stats: ", e)
 
-	return mem_percent, cpu_percent
+	return mem_percent
 
 
-def push_system_stats_mqtt(mem_percent, cpu_percent):
+def get_cpu_stats():
+	cpu_percent = None
+
+	try:
+		cpu_percent = psutil.cpu_percent()
+	except Exception as e:
+		print("Warning: failed to get cpu stats: ", e)
+
+	return cpu_percent
+
+
+def push_mem_stats_mqtt(mem_percent):
 	try:
 		mqtt.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
+	except Exception as e:
+		print("Warning: failed to push mem stats to mqtt: ", e)
+
+def push_cpu_stats_mqtt(cpu_percent):
+	try:
 		mqtt.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
 	except Exception as e:
-		print("Warning: failed to push system stats to mqtt: ", e)
+		print("Warning: failed to push cpu stats to mqtt: ", e)
 
 
 
@@ -152,12 +166,14 @@ def loop():
 		disk_percent = get_disk_stats()
 		if disk_percent is not None:
 			push_disk_stats_mqtt(disk_percent)
+		mem_percent = get_mem_stats()
 
-		print 'getting system stats'
-		mem_percent, cpu_percent = get_system_stats()
-		if mem_percent is not None and cpu_percent is not None:
-			push_system_stats_mqtt(mem_percent, cpu_percent)
+		if mem_percent is not None:
+			push_mem_stats_mqtt(mem_percent)
+		cpu_percent = get_cpu_stats()
 
+		if cpu_percent is not None:
+			push_cpu_stats_mqtt(cpu_percent)
 
 		time.sleep(60)
 
