@@ -20,3 +20,10 @@ cert = "/etc/aws/pi-sensor.cert.pem"
 key = "/etc/aws/pi-sensor.private.key"
 ca = "/etc/aws/root-CA.crt"
 
+[rfm69]
+enabled = true
+high_power = true
+network = 1
+node = 1
+gateway = 254
+encryption_key = "1234567891011121"
