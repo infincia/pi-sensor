@@ -157,26 +157,30 @@ def loop():
 	print 'Connecting...'
 	mqtt.connect()
 
+	last = time.time()
+
 	while True:
-		print 'getting sensor values'
-		temperature, humidity = get_sensor_values()
-		if temperature is not None and humidity is not None:
-			push_sensor_values_mqtt(temperature, humidity)
-		print 'getting disk stats'
-		disk_percent = get_disk_stats()
-		if disk_percent is not None:
-			push_disk_stats_mqtt(disk_percent)
-		mem_percent = get_mem_stats()
+		time.sleep(0.1)
 
-		if mem_percent is not None:
-			push_mem_stats_mqtt(mem_percent)
-		cpu_percent = get_cpu_stats()
+		now = time.time()
+		if now - last > 60:
+			last = now
 
-		if cpu_percent is not None:
-			push_cpu_stats_mqtt(cpu_percent)
+			temperature, humidity = get_sensor_values()
+			if temperature is not None and humidity is not None:
+				push_sensor_values_mqtt(temperature, humidity)
 
-		time.sleep(60)
+			disk_percent = get_disk_stats()
+			if disk_percent is not None:
+				push_disk_stats_mqtt(disk_percent)
+			mem_percent = get_mem_stats()
 
+			if mem_percent is not None:
+				push_mem_stats_mqtt(mem_percent)
+			cpu_percent = get_cpu_stats()
+
+			if cpu_percent is not None:
+				push_cpu_stats_mqtt(cpu_percent)
 
 
 if __name__ == "__main__":
