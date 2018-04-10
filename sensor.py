@@ -17,6 +17,7 @@ conf = anyconfig.load(["/opt/pi-sensor/defaults.toml", "/etc/pi-sensor/config.to
 update_interval = conf['update_interval']
 
 si7021_enabled = conf['si7021']['enabled']
+rfm69_enabled = conf['rfm69']['enabled']
 awsiot_enabled = conf['awsiot']['enabled']
 
 disk_enabled = conf['disk']['enabled']
@@ -32,6 +33,23 @@ if si7021_enabled:
 	import Adafruit_PureIO.smbus as smbus
 
 
+if rfm69_enabled:
+	print "RFM69 enabled"
+	rfm69_high_power = conf['rfm69']['high_power']
+	rfm69_network = conf['rfm69']['network']
+	rfm69_node = conf['rfm69']['node']
+	rfm69_gateway = conf['rfm69']['gateway']
+
+	rfm69_encryption_key = conf['rfm69']['encryption_key']
+
+	from RFM69 import RFM69
+	from RFM69.RFM69registers import *
+
+	radio = RFM69.RFM69(freqBand = RF69_915MHZ, nodeID = rfm69_node, networkID = rfm69_network, isRFM69HW = True, intPin = 18, rstPin = 22, spiBus = 0, spiDevice = 0)
+
+	radio.rcCalibration()
+	radio.setHighPower(rfm69_high_power)
+	radio.encrypt(rfm69_encryption_key)
 
 if awsiot_enabled:
 	print "AWS IoT enabled"
