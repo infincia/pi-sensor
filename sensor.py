@@ -123,7 +123,7 @@ def get_system_stats():
 		mqtt.publish(DEVICE_NAME + '/ram', mem_percent, 0)
 		mqtt.publish(DEVICE_NAME + '/cpu', cpu_percent, 0)
 	except Exception as e:
-		print("Warning: failed to update mqtt: ", e)
+		print("Warning: failed to get system stats: ", e)
 
 	return mem_percent, cpu_percent
 
