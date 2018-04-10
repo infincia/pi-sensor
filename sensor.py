@@ -161,8 +161,6 @@ def get_mem_stats():
 		total = round(memory.total/1024.0/1024.0,1)
 		used = total - available
 		mem_percent = (used / total) * 100.0
-		mqtt.publish(DEVICE_NAME + '/ram', mem_percent, 0)
-		mqtt.publish(DEVICE_NAME + '/cpu', cpu_percent, 0)
 	except Exception as e:
 		print("Warning: failed to get mem stats: ", e)
 
