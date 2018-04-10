@@ -256,6 +256,9 @@ def loop():
 		        radio.sendACK()
 
 
+			if radio.SENDERID != rfm69_gateway:
+				continue
+				
 if __name__ == "__main__":
 	try:
 		loop()
