@@ -249,9 +249,11 @@ def loop():
 		    radio.receiveBegin()
 		    if not radio.receiveDone():
 		        continue
+
 			received_message = "".join([chr(letter) for letter in radio.DATA])
 
 		    print "Received message from %s<%s dB>" % radio.SENDERID, radio.RSSI)
+
 		    if radio.ACKRequested():
 		        radio.sendACK()
 
