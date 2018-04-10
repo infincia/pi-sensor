@@ -1,0 +1,3 @@
+[submodule "RFM69"]
+	path = RFM69
+	url = https://github.com/etrombly/RFM69.git
