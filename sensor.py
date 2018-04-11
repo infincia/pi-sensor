@@ -247,16 +247,16 @@ def loop():
 					print "Radio ack recieved"
 
 		if rfm69_enabled:
-		    radio.receiveBegin()
-		    if not radio.receiveDone():
-		        continue
+			radio.receiveBegin()
+			if not radio.receiveDone():
+				continue
 
 			received_message = "".join([chr(letter) for letter in radio.DATA])
 
-		    print "Received message from %s<%s dB>" % (radio.SENDERID, radio.RSSI)
+			print "Received message from %s<%s dB>" % (radio.SENDERID, radio.RSSI)
 
-		    if radio.ACKRequested():
-		        radio.sendACK()
+			if radio.ACKRequested():
+				radio.sendACK()
 
 
 			if radio.SENDERID != rfm69_gateway:
