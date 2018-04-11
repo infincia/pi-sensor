@@ -209,7 +209,7 @@ def loop():
 		if now - last > 60:
 			last = now
 
-			sensor_message = { "n": DEVICE_NAME }
+			sensor_message = { "n": DEVICE_NAME, "ty": "hello" }
 
 			if si7021_enabled:
 				temperature, humidity = get_sensor_values()
