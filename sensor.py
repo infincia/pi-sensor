@@ -206,7 +206,7 @@ def loop():
 		time.sleep(0.1)
 
 		now = time.time()
-		if now - last > 60:
+		if now - last > update_interval:
 			last = now
 
 			sensor_message = { "n": DEVICE_NAME, "ty": "hello" }
