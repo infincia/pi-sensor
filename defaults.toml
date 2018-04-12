@@ -13,6 +13,11 @@ enabled = true
 [mem]
 enabled = true
 
+[mqtt]
+enabled = true
+endpoint = "iot.eclipse.org"
+port = 1883
+
 [awsiot]
 enabled = true
 endpoint = "a2ilo8j9t13k8m.iot.us-east-1.amazonaws.com"
