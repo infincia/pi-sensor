@@ -61,13 +61,13 @@ if awsiot_enabled:
 	awsiot_cert = conf['awsiot']['cert']
 	awsiot_key = conf['awsiot']['key']
 
-	mqtt = AWSIoTMQTTClient(DEVICE_NAME)
-	mqtt.configureEndpoint(awsiot_endpoint, 8883)
-	mqtt.configureCredentials(awsiot_ca, awsiot_key, awsiot_cert)
-	mqtt.configureOfflinePublishQueueing(-1)
-	mqtt.configureDrainingFrequency(2)
-	mqtt.configureConnectDisconnectTimeout(10)
-	mqtt.configureMQTTOperationTimeout(5)
+	awsiot = AWSIoTMQTTClient(DEVICE_NAME)
+	awsiot.configureEndpoint(awsiot_endpoint, 8883)
+	awsiot.configureCredentials(awsiot_ca, awsiot_key, awsiot_cert)
+	awsiot.configureOfflinePublishQueueing(-1)
+	awsiot.configureDrainingFrequency(2)
+	awsiot.configureConnectDisconnectTimeout(10)
+	awsiot.configureMQTTOperationTimeout(5)
 
 
 
@@ -120,8 +120,8 @@ def get_sensor_values():
 
 def push_sensor_values(temperature, humidity):
 	try:
-		mqtt.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
-		mqtt.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
+		awsiot.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
+		awsiot.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
 	except Exception as e:
 		print("Warning: failed to push sensor values to mqtt")
 
@@ -146,7 +146,7 @@ def get_disk_stats():
 
 def push_disk_stats(disk_percent):
 	try:
-		mqtt.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
+		awsiot.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
 	except Exception as e:
 		print("Warning: failed to push disk stats to mqtt: ", e)
 
@@ -181,13 +181,13 @@ def get_cpu_stats():
 
 def push_mem_stats(mem_percent):
 	try:
-		mqtt.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
+		awsiot.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
 	except Exception as e:
 		print("Warning: failed to push mem stats to mqtt: ", e)
 
 def push_cpu_stats(cpu_percent):
 	try:
-		mqtt.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
+		awsiot.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
 	except Exception as e:
 		print("Warning: failed to push cpu stats to mqtt: ", e)
 
@@ -198,7 +198,7 @@ def push_cpu_stats(cpu_percent):
 def loop():
 	print 'Connecting...'
 	if awsiot_enabled:
-		mqtt.connect()
+		awsiot.connect()
 
 	last = time.time()
 
