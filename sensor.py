@@ -85,13 +85,24 @@ if mqtt_enabled:
 		# reconnect then subscriptions will be renewed.
 		client.subscribe("$SYS/#")
 
+	def on_mqtt_disconnect(client, userdata, rc):
+		print("MQTT disconnected with result code "+str(rc))
+
 	# The callback for when a PUBLISH message is received from the server.
 	def on_mqtt_message(client, userdata, msg):
 		print("MQTT message <" + msg.topic + ">: " + str(msg.payload))
 
+	def on_mqtt_log(client, userdata, level, buf):
+		if level == MQTT_LOG_NOTICE or level == MQTT_LOG_INFO or level == MQTT_LOG_WARNING or level == MQTT_LOG_ERROR:
+			print("MQTT log: " + str(buf))
+
+
+
 	mqtt_client = mqtt.Client()
 	mqtt_client.on_connect = on_mqtt_connect
+	mqtt_client.on_disconnect = on_mqtt_disconnect
 	mqtt_client.on_message = on_mqtt_message
+	mqtt_client.on_log = on_mqtt_log
 
 
 def get_sensor_values():
