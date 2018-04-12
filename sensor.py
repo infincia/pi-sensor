@@ -261,6 +261,13 @@ def loop():
 
 	if mqtt_enabled:
 		mqtt_client.connect(mqtt_endpoint, mqtt_port, 60)
+		if mqtt_port == 8883:
+			logger.info("MQTT configuring TLS")
+			try:
+				mqtt_client.tls_set()
+			except Exception as e:
+				logger.exception("MQTT TLS configuration failed")
+
 		mqtt_client.loop_start()
 
 
