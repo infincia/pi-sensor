@@ -2,3 +2,4 @@ psutil
 Adafruit_PureIO
 toml
 anyconfig
+paho-mqtt
