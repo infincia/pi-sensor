@@ -85,9 +85,6 @@ if mqtt_enabled:
 	def on_mqtt_connect(client, userdata, flags, rc):
 		logger.info("MQTT connected with result code: %s", str(rc))
 
-		# Subscribing in on_connect() means that if we lose the connection and
-		# reconnect then subscriptions will be renewed.
-		client.subscribe("$SYS/#")
 
 	def on_mqtt_disconnect(client, userdata, rc):
 		logger.info("MQTT disconnected with result code: %s", str(rc))
