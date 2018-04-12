@@ -32,15 +32,15 @@ cpu_enabled = conf['cpu']['enabled']
 
 DEVICE_NAME = conf['name']
 
-print "Pi Sensor {0} running".format(DEVICE_NAME)
+logger.info("Pi Sensor %s running", DEVICE_NAME)
 
 if si7021_enabled:
-	print "si7021 enabled"
+	logger.info("si7021 enabled")
 	import Adafruit_PureIO.smbus as smbus
 
 
 if rfm69_enabled:
-	print "RFM69 enabled"
+	logger.info("RFM69 enabled")
 	rfm69_high_power = conf['rfm69']['high_power']
 	rfm69_network = conf['rfm69']['network']
 	rfm69_node = conf['rfm69']['node']
@@ -58,7 +58,7 @@ if rfm69_enabled:
 	radio.encrypt(rfm69_encryption_key)
 
 if awsiot_enabled:
-	print "AWS IoT enabled"
+	logger.info("AWS IoT enabled")
 	from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
 	awsiot_endpoint = conf['awsiot']['endpoint']
@@ -76,25 +76,25 @@ if awsiot_enabled:
 
 
 if mqtt_enabled:
-	print "MQTT enabled"
+	logger.info("MQTT enabled")
 	import paho.mqtt.client as mqtt
 
 	mqtt_endpoint = conf['mqtt']['endpoint']
 	mqtt_port = conf['mqtt']['port']
 
 	def on_mqtt_connect(client, userdata, flags, rc):
-		print("MQTT connected with result code "+str(rc))
+		logger.info("MQTT connected with result code: %s", str(rc))
 
 		# Subscribing in on_connect() means that if we lose the connection and
 		# reconnect then subscriptions will be renewed.
 		client.subscribe("$SYS/#")
 
 	def on_mqtt_disconnect(client, userdata, rc):
-		print("MQTT disconnected with result code "+str(rc))
+		logger.info("MQTT disconnected with result code: %s", str(rc))
 
 	# The callback for when a PUBLISH message is received from the server.
 	def on_mqtt_message(client, userdata, msg):
-		print("MQTT message <" + msg.topic + ">: " + str(msg.payload))
+		logger.info("MQTT message <%s>: %s", msg.topic, str(msg.payload))
 
 	def on_mqtt_log(client, userdata, level, buf):
 		if level == MQTT_LOG_NOTICE or level == MQTT_LOG_INFO or level == MQTT_LOG_WARNING or level == MQTT_LOG_ERROR:
@@ -151,7 +151,7 @@ def get_sensor_values():
 		temperature = (temperature * 1.8) + 32
 
 	except Exception as e:
-		print("Warning: failed to get sensor data: ", e)
+		logger.exception("Failed to get sensor data")
 
 	return temperature, humidity
 
@@ -161,14 +161,14 @@ def push_sensor_values(temperature, humidity):
 			awsiot.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
 			awsiot.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
 		except Exception as e:
-			print("Warning: failed to push sensor values to awsiot")
+			logger.exception("Failed to push sensor values to awsiot")
 
 	if mqtt_enabled:
 		try:
 			mqtt_client.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
 			mqtt_client.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
 		except Exception as e:
-			print("Warning: failed to push sensor values to mqtt")
+			logger.exception("Failed to push sensor values to mqtt")
 
 
 
@@ -183,7 +183,7 @@ def get_disk_stats():
 		used = total - free
 		disk_percent = (used / total) * 100.0
 	except Exception as e:
-		print("Warning: failed to get disk data: ", e)
+		logger.exception("Failed to get disk data")
 
 	return disk_percent
 
@@ -193,13 +193,13 @@ def push_disk_stats(disk_percent):
 		try:
 			awsiot.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
 		except Exception as e:
-			print("Warning: failed to push disk stats to awsiot: ", e)
+			logger.exception("Failed to push disk stats to awsiot")
 
 	if mqtt_enabled:
 		try:
 			mqtt_client.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
 		except Exception as e:
-			print("Warning: failed to push disk stats to mqtt: ", e)
+			logger.exception("Failed to push disk stats to mqtt")
 
 
 
@@ -214,7 +214,7 @@ def get_mem_stats():
 		used = total - available
 		mem_percent = (used / total) * 100.0
 	except Exception as e:
-		print("Warning: failed to get mem stats: ", e)
+		logger.exception("Failed to get mem stats")
 
 	return mem_percent
 
@@ -225,7 +225,7 @@ def get_cpu_stats():
 	try:
 		cpu_percent = psutil.cpu_percent()
 	except Exception as e:
-		print("Warning: failed to get cpu stats: ", e)
+		logger.exception("Failed to get cpu stats")
 
 	return cpu_percent
 
@@ -235,26 +235,26 @@ def push_mem_stats(mem_percent):
 		try:
 			awsiot.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
 		except Exception as e:
-			print("Warning: failed to push mem stats to awsiot: ", e)
+			logger.exception("Failed to push mem stats to awsiot")
 
 	if mqtt_enabled:
 		try:
 			mqtt_client.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
 		except Exception as e:
-			print("Warning: failed to push mem stats to mqtt: ", e)
+			logger.exception("Failed to push mem stats to mqtt")
 
 def push_cpu_stats(cpu_percent):
 	if awsiot_enabled:
 		try:
 			awsiot.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
 		except Exception as e:
-			print("Warning: failed to push cpu stats to awsiot: ", e)
+			logger.exception("Failed to push cpu stats to awsiot")
 
 	if mqtt_enabled:
 		try:
 			mqtt_client.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
 		except Exception as e:
-			print("Warning: failed to push cpu stats to mqtt: ", e)
+			logger.exception("Failed to push cpu stats to mqtt")
 
 
 
@@ -263,7 +263,7 @@ def push_cpu_stats(cpu_percent):
 
 
 def loop():
-	print 'Connecting...'
+	logger.info('Connecting...')
 	if awsiot_enabled:
 		awsiot.connect()
 
@@ -311,9 +311,9 @@ def loop():
 			json_packet = json.dumps(sensor_message, sort_keys = True)
 
 			if rfm69_enabled:
-				print "Sending %s to %s" % (json_packet, rfm69_gateway)
+				logger.info("Sending %s to %s", json_packet, rfm69_gateway)
 				if radio.sendWithRetry(rfm69_gateway, json_packet, 3, 20):
-					print "Radio ack recieved"
+					logger.info("Radio ack recieved")
 
 		if rfm69_enabled:
 			radio.receiveBegin()
@@ -322,7 +322,7 @@ def loop():
 
 			received_message = "".join([chr(letter) for letter in radio.DATA])
 
-			print "Received message from %s<%s dB>" % (radio.SENDERID, radio.RSSI)
+			logger.info("Received message from %s<%s dB>", radio.SENDERID, radio.RSSI)
 
 			if radio.ACKRequested():
 				radio.sendACK()
@@ -335,19 +335,19 @@ def loop():
 				command_message = json.loads(received_message)
 				command = command_message['c']
 				if command == 'reboot':
-					print "Pi Sensor %s rebooting..." % DEVICE_NAME
+					logger.info("Pi Sensor %s rebooting...", DEVICE_NAME)
 					os.system('reboot')
 				else:
-					print "Recevied unknown command: %s" % command
+					logger.warning("Recevied unknown command: %s", command)
 			except:
-				print "Received invalid JSON message, ignoring: %s" % received_message
+				logger.warning("Received invalid JSON message, ignoring: %s", received_message)
 
 
 if __name__ == "__main__":
 	try:
 		loop()
 	except Exception as e:
-		print "Exception occurred during loop: {0}".format(e)
+		logger.exception("Exception occurred during loop")
 	finally:
 		if rfm69_enabled:
 			# try to ensure everything gets reset
