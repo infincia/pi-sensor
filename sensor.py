@@ -79,15 +79,15 @@ if mqtt_enabled:
 	mqtt_port = conf['mqtt']['port']
 
 	def on_mqtt_connect(client, userdata, flags, rc):
-	    print("MQTT connected with result code "+str(rc))
+		print("MQTT connected with result code "+str(rc))
 
-	    # Subscribing in on_connect() means that if we lose the connection and
-	    # reconnect then subscriptions will be renewed.
-	    client.subscribe("$SYS/#")
+		# Subscribing in on_connect() means that if we lose the connection and
+		# reconnect then subscriptions will be renewed.
+		client.subscribe("$SYS/#")
 
 	# The callback for when a PUBLISH message is received from the server.
 	def on_mqtt_message(client, userdata, msg):
-	    print("MQTT message <" + msg.topic + ">: " + str(msg.payload))
+		print("MQTT message <" + msg.topic + ">: " + str(msg.payload))
 
 	mqtt_client = mqtt.Client()
 	mqtt_client.on_connect = on_mqtt_connect
