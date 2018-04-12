@@ -137,7 +137,6 @@ def get_disk_stats():
 		total = round(disk.total/1024.0/1024.0/1024.0,1)
 		used = total - free
 		disk_percent = (used / total) * 100.0
-		mqtt.publish(DEVICE_NAME + '/disk', disk_percent, 0)
 	except Exception as e:
 		print("Warning: failed to get disk data: ", e)
 
