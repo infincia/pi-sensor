@@ -20,6 +20,7 @@ update_interval = conf['update_interval']
 si7021_enabled = conf['si7021']['enabled']
 rfm69_enabled = conf['rfm69']['enabled']
 awsiot_enabled = conf['awsiot']['enabled']
+mqtt_enabled = conf['mqtt']['enabled']
 
 disk_enabled = conf['disk']['enabled']
 mem_enabled = conf['mem']['enabled']
@@ -70,6 +71,27 @@ if awsiot_enabled:
 	awsiot.configureMQTTOperationTimeout(5)
 
 
+if mqtt_enabled:
+	print "MQTT enabled"
+	import paho.mqtt.client as mqtt
+
+	mqtt_endpoint = conf['mqtt']['endpoint']
+	mqtt_port = conf['mqtt']['port']
+
+	def on_mqtt_connect(client, userdata, flags, rc):
+	    print("MQTT connected with result code "+str(rc))
+
+	    # Subscribing in on_connect() means that if we lose the connection and
+	    # reconnect then subscriptions will be renewed.
+	    client.subscribe("$SYS/#")
+
+	# The callback for when a PUBLISH message is received from the server.
+	def on_mqtt_message(client, userdata, msg):
+	    print("MQTT message <" + msg.topic + ">: " + str(msg.payload))
+
+	mqtt_client = mqtt.Client()
+	mqtt_client.on_connect = on_mqtt_connect
+	mqtt_client.on_message = on_mqtt_message
 
 
 def get_sensor_values():
@@ -126,6 +148,13 @@ def push_sensor_values(temperature, humidity):
 		except Exception as e:
 			print("Warning: failed to push sensor values to awsiot")
 
+	if mqtt_enabled:
+		try:
+			mqtt_client.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
+			mqtt_client.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
+		except Exception as e:
+			print("Warning: failed to push sensor values to mqtt")
+
 
 
 
@@ -150,6 +179,12 @@ def push_disk_stats(disk_percent):
 			awsiot.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
 		except Exception as e:
 			print("Warning: failed to push disk stats to awsiot: ", e)
+
+	if mqtt_enabled:
+		try:
+			mqtt_client.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
+		except Exception as e:
+			print("Warning: failed to push disk stats to mqtt: ", e)
 
 
 
@@ -187,12 +222,26 @@ def push_mem_stats(mem_percent):
 		except Exception as e:
 			print("Warning: failed to push mem stats to awsiot: ", e)
 
+	if mqtt_enabled:
+		try:
+			mqtt_client.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
+		except Exception as e:
+			print("Warning: failed to push mem stats to mqtt: ", e)
+
 def push_cpu_stats(cpu_percent):
 	if awsiot_enabled:
 		try:
 			awsiot.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
 		except Exception as e:
 			print("Warning: failed to push cpu stats to awsiot: ", e)
+
+	if mqtt_enabled:
+		try:
+			mqtt_client.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
+		except Exception as e:
+			print("Warning: failed to push cpu stats to mqtt: ", e)
+
+
 
 
 
@@ -202,6 +251,11 @@ def loop():
 	print 'Connecting...'
 	if awsiot_enabled:
 		awsiot.connect()
+
+	if mqtt_enabled:
+		mqtt_client.connect(mqtt_endpoint, mqtt_port, 60)
+		mqtt_client.loop_start()
+
 
 	last = time.time()
 
@@ -283,3 +337,4 @@ if __name__ == "__main__":
 		if rfm69_enabled:
 			# try to ensure everything gets reset
 			radio.shutdown()
+			mqtt_client.loop_stop(force = True)
