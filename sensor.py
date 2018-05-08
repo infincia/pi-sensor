@@ -36,7 +36,6 @@ logger = logging.getLogger(__name__)
 
 conf = anyconfig.load(["/opt/pi-sensor/defaults.toml", "/etc/pi-sensor/config.toml"], ignore_missing=True, ac_merge=anyconfig.MS_REPLACE)
 
-update_interval = conf['update_interval']
 web_enabled = conf['web']['enabled']
 si7021_enabled = conf['si7021']['enabled']
 rfm69_enabled = conf['rfm69']['enabled']
@@ -340,14 +339,11 @@ def loop():
 		logger.info('Waiting for camera module warmup...')
 		time.sleep(3)
 
-	last = time.time()
 
 	while True:
 		time.sleep(0.1)
 
-		now = time.time()
-		if now - last > update_interval:
-			last = now
+        if True:
 
 			sensor_message = { "n": DEVICE_NAME, "ty": "hello" }
 

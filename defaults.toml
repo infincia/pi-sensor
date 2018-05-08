@@ -1,5 +1,4 @@
 name = "pi-sensor"
-update_interval = 60
 
 
 [si7021]
