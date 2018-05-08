@@ -260,7 +260,24 @@ def push_cpu_stats(cpu_percent):
 			logger.exception("Failed to push cpu stats to mqtt")
 
 
+def get_local_ip():
+	# https://stackoverflow.com/a/28950776
+	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	try:
+		s.connect(('10.255.255.255', 1))
+		ip = s.getsockname()[0]
+	except (socket.error, IndexError):
+		ip = '127.0.0.1'
+	finally:
+		s.close()
+	return ip
 
+
+def get_local_mac():
+	mac_num = hex(uuid.getnode()).replace('0x', '').replace('L', '')
+	mac_num = mac_num.zfill(12)
+	mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
+	return mac
 
 
 
