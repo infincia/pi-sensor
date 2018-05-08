@@ -345,7 +345,7 @@ def loop():
 
         if True:
 
-			sensor_message = { "n": DEVICE_NAME, "ty": "hello" }
+            sensor_message = { "n": DEVICE_NAME }
 
 			if si7021_enabled:
 				temperature, humidity = get_sensor_values()
