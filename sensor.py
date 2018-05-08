@@ -435,7 +435,7 @@ async def sensor_loop():
 				else:
 					logger.warning("Recevied unknown command: %s", command)
 			except:
-				logger.warning("Received invalid JSON message, ignoring: %s", received_message)
+				logger.warning("Received invalid message, ignoring: %s", received_message)
 
 
 if __name__ == "__main__":
