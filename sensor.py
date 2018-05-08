@@ -17,16 +17,22 @@ import threading
 import io
 import socket
 
+import anyconfig
 import websockets
 
 import msgpack
 
 from zeroconf import ServiceInfo, Zeroconf
+import Adafruit_PureIO.smbus as smbus
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from RFM69 import RFM69
+from RFM69.RFM69registers import RF69_915MHZ
+import paho.mqtt.client as mqtt
+import picamera
 
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
 
-import anyconfig
 
 conf = anyconfig.load(["/opt/pi-sensor/defaults.toml", "/etc/pi-sensor/config.toml"], ignore_missing=True, ac_merge=anyconfig.MS_REPLACE)
 
@@ -50,7 +56,6 @@ logger.info("Pi Sensor %s running", DEVICE_NAME)
 
 if si7021_enabled:
 	logger.info("si7021 enabled")
-	import Adafruit_PureIO.smbus as smbus
 
 
 if rfm69_enabled:
@@ -62,9 +67,6 @@ if rfm69_enabled:
 
 	rfm69_encryption_key = conf['rfm69']['encryption_key']
 
-	from RFM69 import RFM69
-	from RFM69.RFM69registers import *
-
 	radio = RFM69.RFM69(freqBand = RF69_915MHZ, nodeID = rfm69_node, networkID = rfm69_network, isRFM69HW = True, intPin = 18, rstPin = 22, spiBus = 0, spiDevice = 0)
 
 	radio.rcCalibration()
@@ -73,7 +75,6 @@ if rfm69_enabled:
 
 if awsiot_enabled:
 	logger.info("AWS IoT enabled")
-	from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
 	awsiot_endpoint = conf['awsiot']['endpoint']
 	awsiot_ca = conf['awsiot']['ca']
@@ -91,7 +92,6 @@ if awsiot_enabled:
 
 if mqtt_enabled:
 	logger.info("MQTT enabled")
-	import paho.mqtt.client as mqtt
 
 	mqtt_endpoint = conf['mqtt']['endpoint']
 	mqtt_port = conf['mqtt']['port']
@@ -127,8 +127,6 @@ if camera_enabled:
 	sensor_mode = conf['camera']['sensor_mode']
 	exposure_mode = conf['camera']['exposure_mode']
 	use_video_port = conf['camera']['use_video_port']
-
-	import picamera
 
 	camera = picamera.PiCamera()
 
