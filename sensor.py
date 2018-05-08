@@ -413,10 +413,29 @@ async def sensor_loop():
 
 
 if __name__ == "__main__":
+    if web_enabled:
+        logger.info('Publishing mDNS service...')
+        zeroconf = Zeroconf()
+        host = platform.node()
+
+        ip = get_local_ip()
+        logger.info("Local IP: %s", ip)
+
+        desc = {}
+        info = ServiceInfo(type_ = "_http._tcp.local.",
+                           name = host + "._http._tcp.local.",
+                           address = socket.inet_aton(ip),
+                           port = port,
+                           properties = desc)
+
+        logger.info("Registering mDNS: %s", info)
+
 	try:
 		loop = asyncio.get_event_loop()
 		loop.run_until_complete(sensor_loop())
 
+		if web_enabled:
+            zeroconf.register_service(info)
 		loop.run_forever()
 
 	except Exception:
@@ -427,3 +446,8 @@ if __name__ == "__main__":
 			radio.shutdown()
 		if mqtt_enabled:
 			mqtt_client.loop_stop(force = True)
+
+        if web_enabled:
+            logger.info("Removing mDNS service...")
+            zeroconf.unregister_service(info)
+            zeroconf.close()
