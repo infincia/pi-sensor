@@ -174,7 +174,7 @@ def get_sensor_values():
 		# Convert celsius to fahrenheit
 		temperature = (temperature * 1.8) + 32
 
-	except Exception as e:
+	except Exception:
 		logger.exception("Failed to get sensor data")
 
 	return temperature, humidity
@@ -184,14 +184,14 @@ def push_sensor_values(temperature, humidity):
 		try:
 			awsiot.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
 			awsiot.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
-		except Exception as e:
+		except Exception:
 			logger.exception("Failed to push sensor values to awsiot")
 
 	if mqtt_enabled:
 		try:
 			mqtt_client.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
 			mqtt_client.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
-		except Exception as e:
+		except Exception:
 			logger.exception("Failed to push sensor values to mqtt")
 
 
@@ -206,7 +206,7 @@ def get_disk_stats():
 		total = round(disk.total/1024.0/1024.0/1024.0,1)
 		used = total - free
 		disk_percent = (used / total) * 100.0
-	except Exception as e:
+	except Exception:
 		logger.exception("Failed to get disk data")
 
 	return disk_percent
@@ -216,13 +216,13 @@ def push_disk_stats(disk_percent):
 	if awsiot_enabled:
 		try:
 			awsiot.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
-		except Exception as e:
+		except Exception:
 			logger.exception("Failed to push disk stats to awsiot")
 
 	if mqtt_enabled:
 		try:
 			mqtt_client.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
-		except Exception as e:
+		except Exception:
 			logger.exception("Failed to push disk stats to mqtt")
 
 
@@ -237,7 +237,7 @@ def get_mem_stats():
 		total = round(memory.total/1024.0/1024.0,1)
 		used = total - available
 		mem_percent = (used / total) * 100.0
-	except Exception as e:
+	except Exception:
 		logger.exception("Failed to get mem stats")
 
 	return mem_percent
@@ -248,7 +248,7 @@ def get_cpu_stats():
 
 	try:
 		cpu_percent = psutil.cpu_percent()
-	except Exception as e:
+	except Exception:
 		logger.exception("Failed to get cpu stats")
 
 	return cpu_percent
@@ -258,26 +258,26 @@ def push_mem_stats(mem_percent):
 	if awsiot_enabled:
 		try:
 			awsiot.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
-		except Exception as e:
+		except Exception:
 			logger.exception("Failed to push mem stats to awsiot")
 
 	if mqtt_enabled:
 		try:
 			mqtt_client.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
-		except Exception as e:
+		except Exception:
 			logger.exception("Failed to push mem stats to mqtt")
 
 def push_cpu_stats(cpu_percent):
 	if awsiot_enabled:
 		try:
 			awsiot.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
-		except Exception as e:
+		except Exception:
 			logger.exception("Failed to push cpu stats to awsiot")
 
 	if mqtt_enabled:
 		try:
 			mqtt_client.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
-		except Exception as e:
+		except Exception:
 			logger.exception("Failed to push cpu stats to mqtt")
 
 
@@ -314,7 +314,7 @@ def loop():
 			logger.info("MQTT configuring TLS")
 			try:
 				mqtt_client.tls_set()
-			except Exception as e:
+			except Exception:
 				logger.exception("MQTT TLS configuration failed")
 
 		mqtt_client.loop_start()
@@ -405,7 +405,7 @@ def loop():
 if __name__ == "__main__":
 	try:
 		loop()
-	except Exception as e:
+	except Exception:
 		logger.exception("Exception occurred during loop")
 	finally:
 		if rfm69_enabled:
