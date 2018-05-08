@@ -116,6 +116,7 @@ if mqtt_enabled:
 if websocket_enabled:
 	websocket_endpoint = conf['websocket']['endpoint']
 	websocket_port = conf['websocket']['port']
+	gateway_uri = 'wss://{0}:{1}/{2}'.format(websocket_endpoint, websocket_port, platform.node())
 
 if camera_enabled:
 	fps = conf['camera']['fps']
