@@ -36,6 +36,7 @@ si7021_enabled = conf['si7021']['enabled']
 rfm69_enabled = conf['rfm69']['enabled']
 awsiot_enabled = conf['awsiot']['enabled']
 mqtt_enabled = conf['mqtt']['enabled']
+camera_enabled = conf['camera']['enabled']
 
 disk_enabled = conf['disk']['enabled']
 mem_enabled = conf['mem']['enabled']
@@ -111,6 +112,18 @@ if mqtt_enabled:
 	mqtt_client.on_disconnect = on_mqtt_disconnect
 	mqtt_client.on_message = on_mqtt_message
 
+if camera_enabled:
+	fps = conf['camera']['fps']
+	resolution = conf['camera']['resolution']
+	rotation = conf['camera']['rotation']
+	shutter_speed = conf['camera']['shutter_speed']
+	sensor_mode = conf['camera']['sensor_mode']
+	exposure_mode = conf['camera']['exposure_mode']
+	use_video_port = conf['camera']['use_video_port']
+
+	import picamera
+
+	camera = picamera.PiCamera()
 
 def get_sensor_values():
 	temperature = None
@@ -298,6 +311,17 @@ def loop():
 
 		mqtt_client.loop_start()
 
+	if camera_enabled:
+		camera.rotation = rotation
+		camera.resolution = resolution
+		camera.framerate = fps
+		camera.shutter_speed = shutter_speed
+		camera.sensor_mode = sensor_mode
+		camera.exposure_mode = exposure_mode
+		camera.framerate_range = (0.1, 30)
+		camera.start_preview()
+		logger.info('Waiting for camera module warmup...')
+		time.sleep(3)
 
 	last = time.time()
 
