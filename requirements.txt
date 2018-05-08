@@ -3,3 +3,7 @@ Adafruit_PureIO
 toml
 anyconfig
 paho-mqtt
+msgpack
+websockets
+zeroconf
+picamera
