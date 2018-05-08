@@ -37,6 +37,7 @@ rfm69_enabled = conf['rfm69']['enabled']
 awsiot_enabled = conf['awsiot']['enabled']
 mqtt_enabled = conf['mqtt']['enabled']
 camera_enabled = conf['camera']['enabled']
+websocket_enabled = conf['websocket']['enabled']
 
 disk_enabled = conf['disk']['enabled']
 mem_enabled = conf['mem']['enabled']
@@ -111,6 +112,10 @@ if mqtt_enabled:
 	mqtt_client.on_connect = on_mqtt_connect
 	mqtt_client.on_disconnect = on_mqtt_disconnect
 	mqtt_client.on_message = on_mqtt_message
+
+if websocket_enabled:
+	websocket_endpoint = conf['websocket']['endpoint']
+	websocket_port = conf['websocket']['port']
 
 if camera_enabled:
 	fps = conf['camera']['fps']
