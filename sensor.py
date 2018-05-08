@@ -18,6 +18,7 @@ import io
 import socket
 
 import anyconfig
+import asyncio
 import websockets
 
 import msgpack
@@ -310,8 +311,7 @@ def capture_image():
 	return _last_image
 
 
-
-def loop():
+async def sensor_loop():
 	logger.info('Starting sensor loop...')
 	if awsiot_enabled:
 		awsiot.connect()
@@ -340,8 +340,8 @@ def loop():
 		time.sleep(3)
 
 
-	while True:
-		time.sleep(0.1)
+    while True:
+        await asyncio.sleep(0.1)
 
         if True:
 
@@ -412,7 +412,11 @@ def loop():
 
 if __name__ == "__main__":
 	try:
-		loop()
+		loop = asyncio.get_event_loop()
+		loop.run_until_complete(sensor_loop())
+
+		loop.run_forever()
+
 	except Exception:
 		logger.exception("Exception occurred during loop")
 	finally:
