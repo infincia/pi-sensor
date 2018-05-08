@@ -32,3 +32,18 @@ network = 1
 node = 1
 gateway = 254
 encryption_key = "1234567891011121"
+
+[websocket]
+enabled = false
+endpoint = "gateway.example.com"
+port = 8765
+
+[camera]
+enabled = false
+resolution = "800x600"
+fps = 5
+rotation = 0
+shutter_speed = 0
+sensor_mode = 3
+exposure_mode = "night"
+use_video_port = true
