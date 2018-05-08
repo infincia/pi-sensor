@@ -346,26 +346,26 @@ def loop():
 				temperature, humidity = get_sensor_values()
 				if temperature is not None and humidity is not None:
 					push_sensor_values(temperature, humidity)
-					sensor_message["t"] = "{0:.2f}".format(temperature)
-					sensor_message["h"] = "{0:.2f}".format(humidity)
+					sensor_message["t"] = temperature
+					sensor_message["h"] = humidity
 
 			if disk_enabled:
 				disk_percent = get_disk_stats()
 				if disk_percent is not None:
 					push_disk_stats(disk_percent)
-					sensor_message["d"] = "{0:.2f}".format(disk_percent)
+					sensor_message["d"] = disk_percent
 
 			if mem_enabled:
 				mem_percent = get_mem_stats()
 				if mem_percent is not None:
 					push_mem_stats(mem_percent)
-					sensor_message["m"] = "{0:.2f}".format(mem_percent)
+					sensor_message["m"] = mem_percent
 
 			if cpu_enabled:
 				cpu_percent = get_cpu_stats()
 				if cpu_percent is not None:
 					push_cpu_stats(cpu_percent)
-					sensor_message["c"] = "{0:.2f}".format(cpu_percent)
+					sensor_message["c"] = cpu_percent
 
 			json_packet = json.dumps(sensor_message, sort_keys = True)
 
