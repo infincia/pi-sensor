@@ -14,19 +14,19 @@ enabled = true
 enabled = true
 
 [mqtt]
-enabled = true
+enabled = false
 endpoint = "iot.eclipse.org"
 port = 1883
 
 [awsiot]
-enabled = true
+enabled = false
 endpoint = "a2ilo8j9t13k8m.iot.us-east-1.amazonaws.com"
 cert = "/etc/aws/pi-sensor.cert.pem"
 key = "/etc/aws/pi-sensor.private.key"
 ca = "/etc/aws/root-CA.crt"
 
 [rfm69]
-enabled = true
+enabled = false
 high_power = true
 network = 1
 node = 1
