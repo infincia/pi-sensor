@@ -283,7 +283,7 @@ def get_local_mac():
 
 
 def loop():
-	logger.info('Connecting...')
+	logger.info('Starting sensor loop...')
 	if awsiot_enabled:
 		awsiot.connect()
 
