@@ -373,6 +373,8 @@ def loop():
 					sensor_message["c"] = cpu_percent
 
             sensor_message['ty'] = "sensor"
+
+            binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
 			json_packet = json.dumps(sensor_message, sort_keys = True)
 
 			if rfm69_enabled:
