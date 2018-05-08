@@ -1,5 +1,6 @@
 name = "pi-sensor"
 update_interval = 60
+port = 80
 
 [si7021]
 enabled = true
