@@ -400,7 +400,6 @@ async def sensor_loop():
             sensor_message['ty'] = "sensor"
 
             binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
-			json_packet = json.dumps(sensor_message, sort_keys = True)
 
             if websocket_enabled:
                 await websocket.send(binary_packet)
