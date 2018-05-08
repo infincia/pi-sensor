@@ -380,8 +380,8 @@ async def sensor_loop():
 			json_packet = json.dumps(sensor_message, sort_keys = True)
 
 			if rfm69_enabled:
-				logger.info("Sending %s to %s", json_packet, rfm69_gateway)
-				if radio.sendWithRetry(rfm69_gateway, json_packet, 3, 20):
+				logger.info("Sending binary packet to %s", rfm69_gateway)
+				if radio.sendWithRetry(rfm69_gateway, binary_packet, 3, 20):
 					logger.info("Radio ack recieved")
 
 		if rfm69_enabled:
@@ -401,7 +401,7 @@ async def sensor_loop():
 				continue
 
 			try:
-				command_message = json.loads(received_message)
+                command_message = msgpack.unpack(received_message, use_bin_type = True)
 				command = command_message['c']
 				if command == 'reboot':
 					logger.info("Pi Sensor %s rebooting...", DEVICE_NAME)
