@@ -425,4 +425,5 @@ if __name__ == "__main__":
 		if rfm69_enabled:
 			# try to ensure everything gets reset
 			radio.shutdown()
+		if mqtt_enabled:
 			mqtt_client.loop_stop(force = True)
