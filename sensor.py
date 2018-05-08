@@ -300,6 +300,15 @@ def get_local_mac():
 	mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
 	return mac
 
+def capture_image():
+	_image_stream = io.BytesIO()
+	camera.annotate_background = picamera.Color('black')
+	camera.annotate_text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+	camera.capture(_image_stream, format = 'jpeg', quality = 10, thumbnail = None, use_video_port = use_video_port)
+	_image_stream.seek(0)
+	_last_image = _image_stream.getvalue()
+	_image_stream.close()
+	return _last_image
 
 
 
