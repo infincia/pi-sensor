@@ -8,3 +8,5 @@ websockets
 zeroconf
 picamera
 AWSIoTPythonSDK
+RPi.GPIO
+git+https://github.com/Gadgetoid/py-spidev.git
