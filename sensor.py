@@ -339,6 +339,8 @@ async def sensor_loop():
 		logger.info('Waiting for camera module warmup...')
 		time.sleep(3)
 
+    if websocket_enabled:
+        websocket = await websockets.connect(gateway_uri)
 
     while True:
         await asyncio.sleep(0.1)
