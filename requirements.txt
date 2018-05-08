@@ -7,3 +7,4 @@ msgpack
 websockets
 zeroconf
 picamera
+AWSIoTPythonSDK
