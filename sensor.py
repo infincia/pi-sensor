@@ -374,6 +374,29 @@ async def sensor_loop():
 					push_cpu_stats(cpu_percent)
 					sensor_message["c"] = cpu_percent
 
+            if camera_enabled:
+                logger.debug("Capturing new image")
+
+                cap_start = time.time()
+                last_image = capture_image()
+                cap_end = time.time()
+                logger.info("Capture took %f sec.", (cap_end - cap_start))
+
+                width, height = camera.resolution
+                res_resp = "{}x{}".format(width, height).encode('utf-8')
+
+                fr_resp = float(camera.framerate)
+
+                ex_resp = "{}".format(camera.exposure_mode)
+
+                sh_resp = float(camera.shutter_speed)
+
+				sensor_message["im"] = last_image
+				sensor_message["fr"] = fr_resp
+				sensor_message["res"] = res_resp
+				sensor_message["exp"] = ex_resp
+				sensor_message["shu"] = sh_resp
+
             sensor_message['ty'] = "sensor"
 
             binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
