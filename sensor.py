@@ -31,6 +31,7 @@ import anyconfig
 conf = anyconfig.load(["/opt/pi-sensor/defaults.toml", "/etc/pi-sensor/config.toml"], ignore_missing=True, ac_merge=anyconfig.MS_REPLACE)
 
 update_interval = conf['update_interval']
+port = conf['port']
 
 si7021_enabled = conf['si7021']['enabled']
 rfm69_enabled = conf['rfm69']['enabled']
