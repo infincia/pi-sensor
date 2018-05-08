@@ -372,6 +372,7 @@ def loop():
 					push_cpu_stats(cpu_percent)
 					sensor_message["c"] = cpu_percent
 
+            sensor_message['ty'] = "sensor"
 			json_packet = json.dumps(sensor_message, sort_keys = True)
 
 			if rfm69_enabled:
