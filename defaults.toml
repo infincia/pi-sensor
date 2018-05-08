@@ -1,6 +1,6 @@
 name = "pi-sensor"
 update_interval = 60
-port = 80
+
 
 [si7021]
 enabled = true
@@ -13,6 +13,10 @@ enabled = true
 
 [mem]
 enabled = true
+
+[web]
+enabled = false
+port = 80
 
 [mqtt]
 enabled = false

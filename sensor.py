@@ -37,8 +37,7 @@ logger = logging.getLogger(__name__)
 conf = anyconfig.load(["/opt/pi-sensor/defaults.toml", "/etc/pi-sensor/config.toml"], ignore_missing=True, ac_merge=anyconfig.MS_REPLACE)
 
 update_interval = conf['update_interval']
-port = conf['port']
-
+web_enabled = conf['web']['enabled']
 si7021_enabled = conf['si7021']['enabled']
 rfm69_enabled = conf['rfm69']['enabled']
 awsiot_enabled = conf['awsiot']['enabled']
@@ -53,6 +52,10 @@ cpu_enabled = conf['cpu']['enabled']
 DEVICE_NAME = conf['name']
 
 logger.info("Pi Sensor %s running", DEVICE_NAME)
+
+if web_enabled:
+	port = conf['web']['port']
+
 
 if si7021_enabled:
 	logger.info("si7021 enabled")
