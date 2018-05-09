@@ -68,7 +68,7 @@ if rfm69_enabled:
 
     rfm69_encryption_key = conf['rfm69']['encryption_key']
 
-    radio_queue = Queue()
+    radio_queue = Queue(maxsize=2)
 
     radio_shutdown = False
 
@@ -89,7 +89,7 @@ if awsiot_enabled:
     awsiot.configureConnectDisconnectTimeout(10)
     awsiot.configureMQTTOperationTimeout(5)
     
-    awsiot_queue = Queue()
+    awsiot_queue = Queue(maxsize=2)
 
     awsiot_shutdown = False
 
@@ -116,7 +116,7 @@ if mqtt_enabled:
     mqtt_client.on_disconnect = on_mqtt_disconnect
     mqtt_client.on_message = on_mqtt_message
 
-    mqtt_queue = Queue()
+    mqtt_queue = Queue(maxsize=2)
 
     mqtt_shutdown = False
 
@@ -125,7 +125,7 @@ if websocket_enabled:
     websocket_port = conf['websocket']['port']
     gateway_uri = 'wss://{0}:{1}/{2}'.format(websocket_endpoint, websocket_port, platform.node())
 
-    websocket_queue = Queue()
+    websocket_queue = Queue(maxsize=2)
 
     websocket_shutdown = False
 
