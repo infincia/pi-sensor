@@ -394,7 +394,7 @@ async def sensor_loop():
     logger.info('Starting sensor loop...')
    
     while True:
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(60)
 
         if True:
 
