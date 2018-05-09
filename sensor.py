@@ -317,6 +317,8 @@ def capture_image():
 
 
 def radio_loop():
+    logger.info('Starting radio loop...')
+
     radio = RFM69.RFM69(freqBand = RF69_915MHZ, nodeID = rfm69_node, networkID = rfm69_network, isRFM69HW = True, intPin = 18, rstPin = 22, spiBus = 0, spiDevice = 0)
 
     radio.rcCalibration()
@@ -369,6 +371,8 @@ def radio_loop():
 
 
 async def websocket_loop():
+    logger.info('Starting websocket loop...')
+
     websocket = await websockets.connect(gateway_uri)
 
     while True:
@@ -387,6 +391,8 @@ async def websocket_loop():
 
 
 def awsiot_loop():
+    logger.info('Starting AWS IoT loop...')
+
     awsiot.connect()
 
     while True:
