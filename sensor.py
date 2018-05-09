@@ -396,58 +396,56 @@ async def sensor_loop():
     while True:
         await asyncio.sleep(60)
 
-        if True:
+        sensor_message = {"n": DEVICE_NAME}
 
-            sensor_message = {"n": DEVICE_NAME}
+        if si7021_enabled:
+            temperature, humidity = await get_sensor_values()
+            if temperature is not None and humidity is not None:
+                sensor_message["t"] = temperature
+                sensor_message["h"] = humidity
 
-            if si7021_enabled:
-                temperature, humidity = await get_sensor_values()
-                if temperature is not None and humidity is not None:
-                    sensor_message["t"] = temperature
-                    sensor_message["h"] = humidity
+        if disk_enabled:
+            disk_percent = get_disk_stats()
+            if disk_percent is not None:
+                sensor_message["d"] = disk_percent
 
-            if disk_enabled:
-                disk_percent = get_disk_stats()
-                if disk_percent is not None:
-                    sensor_message["d"] = disk_percent
+        if mem_enabled:
+            mem_percent = get_mem_stats()
+            if mem_percent is not None:
+                sensor_message["m"] = mem_percent
 
-            if mem_enabled:
-                mem_percent = get_mem_stats()
-                if mem_percent is not None:
-                    sensor_message["m"] = mem_percent
+        if cpu_enabled:
+            cpu_percent = get_cpu_stats()
+            if cpu_percent is not None:
+                sensor_message["c"] = cpu_percent
 
-            if cpu_enabled:
-                cpu_percent = get_cpu_stats()
-                if cpu_percent is not None:
-                    sensor_message["c"] = cpu_percent
+        sensor_message['ty'] = "sensor"
 
-            sensor_message['ty'] = "sensor"
+        binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
 
-            binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
+        if websocket_enabled:
+            try:
+                websocket_queue.put(binary_packet)
+            except Full:
+                logger.warning("websocket queue full")
 
-            if websocket_enabled:
-                try:
-                    websocket_queue.put(binary_packet)
-                except Full:
-                    logger.warning("websocket queue full")
+        if rfm69_enabled:
+            try:
+                radio_queue.put(binary_packet)
+            except Full:
+                logger.warning("radio queue full")
 
-            if rfm69_enabled:
-                try:
-                    radio_queue.put(binary_packet)
-                except Full:
-                    logger.warning("radio queue full")
+        if awsiot_enabled:
+            try:
+                awsiot_queue.put(binary_packet)
+            except Full:
+                logger.warning("aws queue full")
 
-            if awsiot_enabled:
-                try:
-                    awsiot_queue.put(binary_packet)
-                except Full:
-                    logger.warning("aws queue full")
-
-            if mqtt_enabled:
-                try:
-                    mqtt_queue.put(binary_packet)
-                except Full:
-                    logger.warning("mqtt queue full")
+        if mqtt_enabled:
+            try:
+                mqtt_queue.put(binary_packet)
+            except Full:
+                logger.warning("mqtt queue full")
 
 
 async def camera_loop():
