@@ -346,9 +346,11 @@ def awsiot_loop():
 
         try:
             packet = awsiot_queue.get(timeout = 0.1)
-
+            awsiot.publish(DEVICE_NAME, packet, 0)
         except Empty:
             pass
+        except Exception:
+            logger.exception("Failed to push sensor packet to AWS IoT")
 
     awsiot.disconnect()
 
