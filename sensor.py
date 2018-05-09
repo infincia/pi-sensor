@@ -27,6 +27,7 @@ from RFM69.RFM69registers import RF69_915MHZ
 import websockets
 from zeroconf import ServiceInfo, Zeroconf
 
+from webapi import web_loop
 
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
@@ -508,6 +509,7 @@ if __name__ == "__main__":
 
         if web_enabled:
             zeroconf.register_service(info)
+            web_task = loop.create_task(web_loop())
 
         if rfm69_enabled:
             radio_thread = threading.Thread(target = radio_loop, name = "radio_thread")
