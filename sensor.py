@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import platform
+from queue import Queue, Empty, Full
 import socket
 import sys
 import threading
@@ -67,6 +68,7 @@ if rfm69_enabled:
     rfm69_encryption_key = conf['rfm69']['encryption_key']
 
     radio = RFM69.RFM69(freqBand = RF69_915MHZ, nodeID = rfm69_node, networkID = rfm69_network, isRFM69HW = True, intPin = 18, rstPin = 22, spiBus = 0, spiDevice = 0)
+    radio_queue = Queue()
 
     radio.rcCalibration()
     radio.setHighPower(rfm69_high_power)
@@ -87,6 +89,8 @@ if awsiot_enabled:
     awsiot.configureDrainingFrequency(2)
     awsiot.configureConnectDisconnectTimeout(10)
     awsiot.configureMQTTOperationTimeout(5)
+    
+    awsiot_queue = Queue()
 
 
 if mqtt_enabled:
@@ -111,10 +115,16 @@ if mqtt_enabled:
     mqtt_client.on_disconnect = on_mqtt_disconnect
     mqtt_client.on_message = on_mqtt_message
 
+    mqtt_queue = Queue()
+
+
 if websocket_enabled:
     websocket_endpoint = conf['websocket']['endpoint']
     websocket_port = conf['websocket']['port']
     gateway_uri = 'wss://{0}:{1}/{2}'.format(websocket_endpoint, websocket_port, platform.node())
+
+    websocket_queue = Queue()
+
 
 if camera_enabled:
     fps = conf['camera']['fps']
