@@ -117,6 +117,7 @@ if mqtt_enabled:
 
     mqtt_queue = Queue()
 
+    mqtt_shutdown = False
 
 if websocket_enabled:
     websocket_endpoint = conf['websocket']['endpoint']
@@ -186,22 +187,6 @@ async def get_sensor_values():
     return temperature, humidity
 
 
-def push_sensor_values(temperature, humidity):
-    if awsiot_enabled:
-        try:
-            awsiot.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
-            awsiot.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
-        except Exception:
-            logger.exception("Failed to push sensor values to awsiot")
-
-    if mqtt_enabled:
-        try:
-            mqtt_client.publish(DEVICE_NAME + '/temperature', "{0:.2f}".format(temperature), 0)
-            mqtt_client.publish(DEVICE_NAME + '/humidity', "{0:.2f}".format(humidity), 0)
-        except Exception:
-            logger.exception("Failed to push sensor values to mqtt")
-
-
 def get_disk_stats():
     disk_percent = None
 
@@ -215,20 +200,6 @@ def get_disk_stats():
         logger.exception("Failed to get disk data")
 
     return disk_percent
-
-
-def push_disk_stats(disk_percent):
-    if awsiot_enabled:
-        try:
-            awsiot.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
-        except Exception:
-            logger.exception("Failed to push disk stats to awsiot")
-
-    if mqtt_enabled:
-        try:
-            mqtt_client.publish(DEVICE_NAME + '/disk', "{0:.2f}".format(disk_percent), 0)
-        except Exception:
-            logger.exception("Failed to push disk stats to mqtt")
 
 
 def get_mem_stats():
@@ -255,34 +226,6 @@ def get_cpu_stats():
         logger.exception("Failed to get cpu stats")
 
     return cpu_percent
-
-
-def push_mem_stats(mem_percent):
-    if awsiot_enabled:
-        try:
-            awsiot.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
-        except Exception:
-            logger.exception("Failed to push mem stats to awsiot")
-
-    if mqtt_enabled:
-        try:
-            mqtt_client.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
-        except Exception:
-            logger.exception("Failed to push mem stats to mqtt")
-
-
-def push_cpu_stats(cpu_percent):
-    if awsiot_enabled:
-        try:
-            awsiot.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
-        except Exception:
-            logger.exception("Failed to push cpu stats to awsiot")
-
-    if mqtt_enabled:
-        try:
-            mqtt_client.publish(DEVICE_NAME + '/cpu', "{0:.2f}".format(cpu_percent), 0)
-        except Exception:
-            logger.exception("Failed to push cpu stats to mqtt")
 
 
 def get_local_ip():
@@ -410,19 +353,40 @@ def awsiot_loop():
     awsiot.disconnect()
 
 
+async def mqtt_loop():
+    logger.info('Starting MQTT loop...')
+
+    mqtt_client.connect(mqtt_endpoint, mqtt_port, 60)
+
+    if mqtt_port == 8883:
+        logger.info("MQTT configuring TLS")
+        try:
+            mqtt_client.tls_set()
+        except Exception:
+            logger.exception("MQTT TLS configuration failed")
+
+    mqtt_client.loop_start()
+        
+    while True:
+        time.sleep(0.1)
+
+        if mqtt_shutdown:
+            break
+
+        try:
+            packet = mqtt_queue.get(timeout = 0.1)
+            mqtt_client.publish(DEVICE_NAME, packet, 0)
+        except Empty:
+            pass
+        except Exception:
+            logger.exception("Failed to push sensor packet to mqtt")
+
+    mqtt_client.disconnect()
+    mqtt_client.loop_stop(force = True)
+
+
 async def sensor_loop():
     logger.info('Starting sensor loop...')
-
-    if mqtt_enabled:
-        mqtt_client.connect(mqtt_endpoint, mqtt_port, 60)
-        if mqtt_port == 8883:
-            logger.info("MQTT configuring TLS")
-            try:
-                mqtt_client.tls_set()
-            except Exception:
-                logger.exception("MQTT TLS configuration failed")
-
-        mqtt_client.loop_start()
 
     if camera_enabled:
         camera.rotation = rotation
@@ -446,26 +410,22 @@ async def sensor_loop():
             if si7021_enabled:
                 temperature, humidity = await get_sensor_values()
                 if temperature is not None and humidity is not None:
-                    push_sensor_values(temperature, humidity)
                     sensor_message["t"] = temperature
                     sensor_message["h"] = humidity
 
             if disk_enabled:
                 disk_percent = get_disk_stats()
                 if disk_percent is not None:
-                    push_disk_stats(disk_percent)
                     sensor_message["d"] = disk_percent
 
             if mem_enabled:
                 mem_percent = get_mem_stats()
                 if mem_percent is not None:
-                    push_mem_stats(mem_percent)
                     sensor_message["m"] = mem_percent
 
             if cpu_enabled:
                 cpu_percent = get_cpu_stats()
                 if cpu_percent is not None:
-                    push_cpu_stats(cpu_percent)
                     sensor_message["c"] = cpu_percent
 
             if camera_enabled:
@@ -513,6 +473,12 @@ async def sensor_loop():
                 except Full:
                     logger.warning("aws queue full")
 
+            if mqtt_enabled:
+                try:
+                    mqtt_queue.put(binary_packet)
+                except Full:
+                    logger.warning("mqtt queue full")
+
 if __name__ == "__main__":
     if web_enabled:
         logger.info('Publishing mDNS service...')
@@ -547,6 +513,9 @@ if __name__ == "__main__":
         if awsiot_enabled:
             awsiot_thread = threading.Thread(target = awsiot_loop, name = "awsiot_thread")
 
+        if mqtt_enabled:
+            mqtt_thread = threading.Thread(target = mqtt_loop, name = "mqtt_thread")
+
         loop.run_forever()
 
     except Exception:
@@ -555,8 +524,9 @@ if __name__ == "__main__":
         if rfm69_enabled:
             # try to ensure everything gets reset
             radio_shutdown = True
+
         if mqtt_enabled:
-            mqtt_client.loop_stop(force = True)
+            mqtt_shutdown = True
 
         if awsiot_enabled:
             awsiot_shutdown = True
