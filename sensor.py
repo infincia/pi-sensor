@@ -327,6 +327,11 @@ async def websocket_loop():
         if websocket_shutdown:
             break
 
+        if not websocket.open:
+            logger.info('Websocket not open, reconnecting')
+
+            websocket = await websockets.connect(gateway_uri)
+
         try:
             packet = websocket_queue.get(timeout = 0.1)
         except Empty:
