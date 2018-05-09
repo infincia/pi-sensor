@@ -329,9 +329,15 @@ async def websocket_loop():
 
         try:
             packet = websocket_queue.get(timeout = 0.1)
-            await websocket.send(packet)
         except Empty:
-            pass
+            continue
+        
+
+        try:
+            await websocket.send(packet)
+        except:
+            logger.exception('Websocket exception occurred')
+
 
     websocket.close()
 
