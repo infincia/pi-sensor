@@ -1,35 +1,31 @@
 #!/usr/bin/env python3
 
-import sys
-import os
-
-import time
-import uuid
-import psutil
-import platform
-import logging
-import time
 import argparse
+import asyncio
+import datetime
+import io
 import json
 import logging
-import datetime
-import threading
-import io
+import os
+import platform
 import socket
+import sys
+import threading
+import time
+import uuid
 
-import anyconfig
-import asyncio
-import websockets
-
-import msgpack
-
-from zeroconf import ServiceInfo, Zeroconf
 import Adafruit_PureIO.smbus as smbus
+import anyconfig
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
-from RFM69 import RFM69
-from RFM69.RFM69registers import RF69_915MHZ
+import msgpack
 import paho.mqtt.client as mqtt
 import picamera
+import psutil
+from RFM69 import RFM69
+from RFM69.RFM69registers import RF69_915MHZ
+import websockets
+from zeroconf import ServiceInfo, Zeroconf
+
 
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
