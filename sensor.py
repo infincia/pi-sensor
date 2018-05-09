@@ -533,10 +533,10 @@ if __name__ == "__main__":
 
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(sensor_loop())
+        sensor_task = loop.create_task(sensor_loop())
 
         if websocket_enabled:
-            loop.run_until_complete(websocket_loop())
+            websocket_task = loop.create_task(websocket_loop())
 
         if web_enabled:
             zeroconf.register_service(info)
