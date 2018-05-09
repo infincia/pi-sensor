@@ -139,7 +139,7 @@ if camera_enabled:
     camera = picamera.PiCamera()
 
 
-def get_sensor_values():
+async def get_sensor_values():
     temperature = None
     humidity = None
 
@@ -151,7 +151,7 @@ def get_sensor_values():
         # Select Relative Humidity NO HOLD master mode
         bus.write_byte(0x40, 0xF5)
 
-        time.sleep(0.3)
+        await asyncio.sleep(0.3)
 
         # SI7021 address, 0x40(64)
         # Read data back, 2 bytes, Humidity MSB first
@@ -161,13 +161,13 @@ def get_sensor_values():
         # Convert the data
         humidity = ((data0 * 256 + data1) * 125 / 65536.0) - 6
 
-        time.sleep(0.3)
+        await asyncio.sleep(0.3)
 
         # SI7021 address: 0x40(64), command 0xF3(243)
         # Select temperature NO HOLD master mode
         bus.write_byte(0x40, 0xF3)
 
-        time.sleep(0.3)
+        await asyncio.sleep(0.3)
 
         # SI7021 address, 0x40(64)
         # Read data back, 2 bytes, Temperature MSB first
@@ -444,7 +444,7 @@ async def sensor_loop():
             sensor_message = {"n": DEVICE_NAME}
 
             if si7021_enabled:
-                temperature, humidity = get_sensor_values()
+                temperature, humidity = await get_sensor_values()
                 if temperature is not None and humidity is not None:
                     push_sensor_values(temperature, humidity)
                     sensor_message["t"] = temperature
