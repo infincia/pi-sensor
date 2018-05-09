@@ -67,12 +67,10 @@ if rfm69_enabled:
 
     rfm69_encryption_key = conf['rfm69']['encryption_key']
 
-    radio = RFM69.RFM69(freqBand = RF69_915MHZ, nodeID = rfm69_node, networkID = rfm69_network, isRFM69HW = True, intPin = 18, rstPin = 22, spiBus = 0, spiDevice = 0)
     radio_queue = Queue()
 
-    radio.rcCalibration()
-    radio.setHighPower(rfm69_high_power)
-    radio.encrypt(rfm69_encryption_key)
+    radio_shutdown = False
+
 
 if awsiot_enabled:
     logger.info("AWS IoT enabled")
@@ -315,6 +313,58 @@ def capture_image():
     return _last_image
 
 
+def radio_loop():
+    radio = RFM69.RFM69(freqBand = RF69_915MHZ, nodeID = rfm69_node, networkID = rfm69_network, isRFM69HW = True, intPin = 18, rstPin = 22, spiBus = 0, spiDevice = 0)
+
+    radio.rcCalibration()
+    radio.setHighPower(rfm69_high_power)
+    radio.encrypt(rfm69_encryption_key)
+
+    while True:
+        time.sleep(0.1)
+
+        if radio_shutdown:
+            break
+
+        try:
+            packet = radio_queue.get(timeout = 0.1)
+  
+            logger.info("Sending binary packet to %s", rfm69_gateway)
+            if radio.sendWithRetry(rfm69_gateway, packet, 3, 20):
+                logger.info("Radio ack recieved")
+        except Empty:
+            pass
+
+        radio.receiveBegin()
+        if not radio.receiveDone():
+            continue
+
+        received_message = "".join([chr(letter) for letter in radio.DATA])
+
+        logger.info("Received message from %s<%s dB>", radio.SENDERID, radio.RSSI)
+
+        if radio.ACKRequested():
+            radio.sendACK()
+
+        if radio.SENDERID != rfm69_gateway:
+            continue
+
+        try:
+            command_message = msgpack.unpack(received_message, use_bin_type = True)
+            command = command_message['c']
+            if command == 'reboot':
+                logger.info("Pi Sensor %s rebooting...", DEVICE_NAME)
+                os.system('reboot')
+            else:
+                logger.warning("Recevied unknown command: %s", command)
+        except:
+            logger.warning("Received invalid message, ignoring: %s", received_message)
+
+    logger.info("radio shutting down")
+
+    radio.shutdown()
+
+
 async def sensor_loop():
     logger.info('Starting sensor loop...')
     if awsiot_enabled:
@@ -409,36 +459,10 @@ async def sensor_loop():
                 await websocket.send(binary_packet)
 
             if rfm69_enabled:
-                logger.info("Sending binary packet to %s", rfm69_gateway)
-                if radio.sendWithRetry(rfm69_gateway, binary_packet, 3, 20):
-                    logger.info("Radio ack recieved")
-
-        if rfm69_enabled:
-            radio.receiveBegin()
-            if not radio.receiveDone():
-                continue
-
-            received_message = "".join([chr(letter) for letter in radio.DATA])
-
-            logger.info("Received message from %s<%s dB>", radio.SENDERID, radio.RSSI)
-
-            if radio.ACKRequested():
-                radio.sendACK()
-
-            if radio.SENDERID != rfm69_gateway:
-                continue
-
-            try:
-                command_message = msgpack.unpack(received_message, use_bin_type = True)
-                command = command_message['c']
-                if command == 'reboot':
-                    logger.info("Pi Sensor %s rebooting...", DEVICE_NAME)
-                    os.system('reboot')
-                else:
-                    logger.warning("Recevied unknown command: %s", command)
-            except:
-                logger.warning("Received invalid message, ignoring: %s", received_message)
-
+                try:
+                    radio_queue.put(binary_packet)
+                except Full:
+                    logger.warning("radio queue full")
 
 if __name__ == "__main__":
     if web_enabled:
@@ -465,6 +489,9 @@ if __name__ == "__main__":
         if web_enabled:
             zeroconf.register_service(info)
 
+        if rfm69_enabled:
+            radio_thread = threading.Thread(target = radio_loop, name = "radio_thread")
+
         loop.run_forever()
 
     except Exception:
@@ -472,7 +499,7 @@ if __name__ == "__main__":
     finally:
         if rfm69_enabled:
             # try to ensure everything gets reset
-            radio.shutdown()
+            radio_shutdown = True
         if mqtt_enabled:
             mqtt_client.loop_stop(force = True)
 
