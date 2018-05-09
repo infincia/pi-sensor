@@ -1,5 +1,6 @@
 from aiohttp import web
 
+last_image = None
 
 async def web_index(request):
 	return web.Response(text = 'Hello Aiohttp!')
