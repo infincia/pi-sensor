@@ -102,14 +102,12 @@ if mqtt_enabled:
     def on_mqtt_connect(client, userdata, flags, rc):
         logger.info("MQTT connected with result code: %s", str(rc))
 
-
     def on_mqtt_disconnect(client, userdata, rc):
         logger.info("MQTT disconnected with result code: %s", str(rc))
 
     # The callback for when a PUBLISH message is received from the server.
     def on_mqtt_message(client, userdata, msg):
         logger.info("MQTT message <%s>: %s", msg.topic, str(msg.payload))
-
 
     mqtt_client = mqtt.Client()
     mqtt_client.enable_logger(logger)
@@ -133,6 +131,7 @@ if camera_enabled:
 
     camera = picamera.PiCamera()
 
+
 def get_sensor_values():
     temperature = None
     humidity = None
@@ -141,8 +140,8 @@ def get_sensor_values():
         # Get I2C bus
         bus = smbus.SMBus(1)
 
-        # SI7021 address, 0x40(64)
-        #		0xF5(245)	Select Relative Humidity NO HOLD master mode
+        # SI7021 address, 0x40(64), command 0xF5(245)
+        # Select Relative Humidity NO HOLD master mode
         bus.write_byte(0x40, 0xF5)
 
         time.sleep(0.3)
@@ -157,8 +156,8 @@ def get_sensor_values():
 
         time.sleep(0.3)
 
-        # SI7021 address, 0x40(64)
-        #		0xF3(243)	Select temperature NO HOLD master mode
+        # SI7021 address: 0x40(64), command 0xF3(243)
+        # Select temperature NO HOLD master mode
         bus.write_byte(0x40, 0xF3)
 
         time.sleep(0.3)
@@ -179,6 +178,7 @@ def get_sensor_values():
 
     return temperature, humidity
 
+
 def push_sensor_values(temperature, humidity):
     if awsiot_enabled:
         try:
@@ -195,15 +195,13 @@ def push_sensor_values(temperature, humidity):
             logger.exception("Failed to push sensor values to mqtt")
 
 
-
-
 def get_disk_stats():
     disk_percent = None
 
     try:
         disk = psutil.disk_usage('/')
-        free = round(disk.free/1024.0/1024.0/1024.0,1)
-        total = round(disk.total/1024.0/1024.0/1024.0,1)
+        free = round(disk.free / 1024.0 / 1024.0 / 1024.0, 1)
+        total = round(disk.total / 1024.0 / 1024.0 / 1024.0, 1)
         used = total - free
         disk_percent = (used / total) * 100.0
     except Exception:
@@ -226,15 +224,13 @@ def push_disk_stats(disk_percent):
             logger.exception("Failed to push disk stats to mqtt")
 
 
-
-
 def get_mem_stats():
     mem_percent = None
 
     try:
         memory = psutil.virtual_memory()
-        available = round(memory.available/1024.0/1024.0,1)
-        total = round(memory.total/1024.0/1024.0,1)
+        available = round(memory.available / 1024.0 / 1024.0, 1)
+        total = round(memory.total / 1024.0 / 1024.0, 1)
         used = total - available
         mem_percent = (used / total) * 100.0
     except Exception:
@@ -266,6 +262,7 @@ def push_mem_stats(mem_percent):
             mqtt_client.publish(DEVICE_NAME + '/ram', "{0:.2f}".format(mem_percent), 0)
         except Exception:
             logger.exception("Failed to push mem stats to mqtt")
+
 
 def push_cpu_stats(cpu_percent):
     if awsiot_enabled:
@@ -299,6 +296,7 @@ def get_local_mac():
     mac_num = mac_num.zfill(12)
     mac = '-'.join(mac_num[i: i + 2] for i in range(0, 11, 2))
     return mac
+
 
 def capture_image():
     _image_stream = io.BytesIO()
@@ -347,7 +345,7 @@ async def sensor_loop():
 
         if True:
 
-            sensor_message = { "n": DEVICE_NAME }
+            sensor_message = {"n": DEVICE_NAME}
 
             if si7021_enabled:
                 temperature, humidity = get_sensor_values()
@@ -420,7 +418,6 @@ async def sensor_loop():
 
             if radio.ACKRequested():
                 radio.sendACK()
-
 
             if radio.SENDERID != rfm69_gateway:
                 continue
