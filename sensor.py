@@ -380,7 +380,7 @@ async def sensor_loop():
                 cap_start = time.time()
                 last_image = capture_image()
                 cap_end = time.time()
-                logger.info("Capture took %f sec.", (cap_end - cap_start))
+                logger.debug("Capture took %f sec.", (cap_end - cap_start))
 
                 width, height = camera.resolution
                 res_resp = "{}x{}".format(width, height).encode('utf-8')
