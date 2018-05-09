@@ -125,6 +125,7 @@ if websocket_enabled:
 
     websocket_queue = Queue()
 
+    websocket_shutdown = False
 
 if camera_enabled:
     fps = conf['camera']['fps']
@@ -367,6 +368,24 @@ def radio_loop():
     radio.shutdown()
 
 
+async def websocket_loop():
+    websocket = await websockets.connect(gateway_uri)
+
+    while True:
+        time.sleep(0.1)
+
+        if websocket_shutdown:
+            break
+
+        try:
+            packet = websocket_queue.get(timeout = 0.1)
+            await websocket.send(packet)
+        except Empty:
+            pass
+
+    websocket.close()
+
+
 def awsiot_loop():
     awsiot.connect()
 
@@ -410,10 +429,7 @@ async def sensor_loop():
         camera.start_preview()
         logger.info('Waiting for camera module warmup...')
         time.sleep(3)
-
-    if websocket_enabled:
-        websocket = await websockets.connect(gateway_uri)
-
+   
     while True:
         await asyncio.sleep(0.1)
 
@@ -474,7 +490,10 @@ async def sensor_loop():
             binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
 
             if websocket_enabled:
-                await websocket.send(binary_packet)
+                try:
+                    websocket_queue.put(binary_packet)
+                except Full:
+                    logger.warning("websocket queue full")
 
             if rfm69_enabled:
                 try:
@@ -510,6 +529,9 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
         loop.run_until_complete(sensor_loop())
 
+        if websocket_enabled:
+            loop.run_until_complete(websocket_loop())
+
         if web_enabled:
             zeroconf.register_service(info)
 
@@ -533,6 +555,9 @@ if __name__ == "__main__":
         if awsiot_enabled:
             awsiot_shutdown = True
         
+        if websocket_enabled:
+            websocket_shutdown = True
+
         if web_enabled:
             logger.info("Removing mDNS service...")
             zeroconf.unregister_service(info)
