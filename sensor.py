@@ -456,7 +456,7 @@ async def sensor_loop():
                 logger.debug("mqtt queue full")
 
 
-async def camera_loop():
+def camera_loop():
     logger.info('Starting camera loop...')
 
     camera.rotation = rotation
@@ -468,10 +468,10 @@ async def camera_loop():
     camera.framerate_range = (0.1, 30)
     camera.start_preview()
     logger.info('Waiting for camera module warmup...')
-    await asyncio.sleep(3)
+    time.sleep(3)
    
     while True:
-        await asyncio.sleep(0.1)
+        time.sleep(0.1)
 
         sensor_message = {"n": DEVICE_NAME}
 
@@ -557,7 +557,8 @@ if __name__ == "__main__":
         sensor_task = loop.create_task(sensor_loop())
 
         if camera_enabled:
-            camera_task = loop.create_task(camera_loop())
+            camera_thread = threading.Thread(target = camera_loop, name = "camera_thread")
+            camera_thread.start()
 
         if websocket_enabled:
             websocket_task = loop.create_task(websocket_loop())
