@@ -90,6 +90,8 @@ if awsiot_enabled:
     
     awsiot_queue = Queue()
 
+    awsiot_shutdown = False
+
 
 if mqtt_enabled:
     logger.info("MQTT enabled")
@@ -365,10 +367,26 @@ def radio_loop():
     radio.shutdown()
 
 
+def awsiot_loop():
+    awsiot.connect()
+
+    while True:
+        time.sleep(0.1)
+
+        if awsiot_shutdown:
+            break
+
+        try:
+            packet = awsiot_queue.get(timeout = 0.1)
+
+        except Empty:
+            pass
+
+    awsiot.disconnect()
+
+
 async def sensor_loop():
     logger.info('Starting sensor loop...')
-    if awsiot_enabled:
-        awsiot.connect()
 
     if mqtt_enabled:
         mqtt_client.connect(mqtt_endpoint, mqtt_port, 60)
@@ -464,6 +482,12 @@ async def sensor_loop():
                 except Full:
                     logger.warning("radio queue full")
 
+            if awsiot_enabled:
+                try:
+                    awsiot_queue.put(binary_packet)
+                except Full:
+                    logger.warning("aws queue full")
+
 if __name__ == "__main__":
     if web_enabled:
         logger.info('Publishing mDNS service...')
@@ -492,6 +516,9 @@ if __name__ == "__main__":
         if rfm69_enabled:
             radio_thread = threading.Thread(target = radio_loop, name = "radio_thread")
 
+        if awsiot_enabled:
+            awsiot_thread = threading.Thread(target = awsiot_loop, name = "awsiot_thread")
+
         loop.run_forever()
 
     except Exception:
@@ -503,6 +530,9 @@ if __name__ == "__main__":
         if mqtt_enabled:
             mqtt_client.loop_stop(force = True)
 
+        if awsiot_enabled:
+            awsiot_shutdown = True
+        
         if web_enabled:
             logger.info("Removing mDNS service...")
             zeroconf.unregister_service(info)
