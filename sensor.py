@@ -459,17 +459,16 @@ async def sensor_loop():
 async def camera_loop():
     logger.info('Starting camera loop...')
 
-    if camera_enabled:
-        camera.rotation = rotation
-        camera.resolution = resolution
-        camera.framerate = fps
-        camera.shutter_speed = shutter_speed
-        camera.sensor_mode = sensor_mode
-        camera.exposure_mode = exposure_mode
-        camera.framerate_range = (0.1, 30)
-        camera.start_preview()
-        logger.info('Waiting for camera module warmup...')
-        await asyncio.sleep(3)
+    camera.rotation = rotation
+    camera.resolution = resolution
+    camera.framerate = fps
+    camera.shutter_speed = shutter_speed
+    camera.sensor_mode = sensor_mode
+    camera.exposure_mode = exposure_mode
+    camera.framerate_range = (0.1, 30)
+    camera.start_preview()
+    logger.info('Waiting for camera module warmup...')
+    await asyncio.sleep(3)
    
     while True:
         await asyncio.sleep(0.1)
