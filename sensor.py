@@ -140,6 +140,8 @@ if camera_enabled:
 
     camera = picamera.PiCamera()
 
+    camera_shutdown = False
+
 
 async def get_sensor_values():
     temperature = None
@@ -390,18 +392,6 @@ async def mqtt_loop():
 
 async def sensor_loop():
     logger.info('Starting sensor loop...')
-
-    if camera_enabled:
-        camera.rotation = rotation
-        camera.resolution = resolution
-        camera.framerate = fps
-        camera.shutter_speed = shutter_speed
-        camera.sensor_mode = sensor_mode
-        camera.exposure_mode = exposure_mode
-        camera.framerate_range = (0.1, 30)
-        camera.start_preview()
-        logger.info('Waiting for camera module warmup...')
-        await asyncio.sleep(3)
    
     while True:
         await asyncio.sleep(0.1)
@@ -431,29 +421,6 @@ async def sensor_loop():
                 if cpu_percent is not None:
                     sensor_message["c"] = cpu_percent
 
-            if camera_enabled:
-                logger.debug("Capturing new image")
-
-                cap_start = time.time()
-                last_image = capture_image()
-                cap_end = time.time()
-                logger.debug("Capture took %f sec.", (cap_end - cap_start))
-
-                width, height = camera.resolution
-                res_resp = "{}x{}".format(width, height).encode('utf-8')
-
-                fr_resp = float(camera.framerate)
-
-                ex_resp = "{}".format(camera.exposure_mode)
-
-                sh_resp = float(camera.shutter_speed)
-
-                sensor_message["im"] = last_image
-                sensor_message["fr"] = fr_resp
-                sensor_message["res"] = res_resp
-                sensor_message["exp"] = ex_resp
-                sensor_message["shu"] = sh_resp
-
             sensor_message['ty'] = "sensor"
 
             binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
@@ -482,6 +449,78 @@ async def sensor_loop():
                 except Full:
                     logger.warning("mqtt queue full")
 
+
+async def camera_loop():
+    logger.info('Starting camera loop...')
+
+    if camera_enabled:
+        camera.rotation = rotation
+        camera.resolution = resolution
+        camera.framerate = fps
+        camera.shutter_speed = shutter_speed
+        camera.sensor_mode = sensor_mode
+        camera.exposure_mode = exposure_mode
+        camera.framerate_range = (0.1, 30)
+        camera.start_preview()
+        logger.info('Waiting for camera module warmup...')
+        await asyncio.sleep(3)
+   
+    while True:
+        await asyncio.sleep(0.1)
+
+        sensor_message = {"n": DEVICE_NAME}
+
+        logger.debug("Capturing new image")
+
+        cap_start = time.time()
+        last_image = capture_image()
+        cap_end = time.time()
+        logger.debug("Capture took %f sec.", (cap_end - cap_start))
+
+        width, height = camera.resolution
+        res_resp = "{}x{}".format(width, height).encode('utf-8')
+
+        fr_resp = float(camera.framerate)
+
+        ex_resp = "{}".format(camera.exposure_mode)
+
+        sh_resp = float(camera.shutter_speed)
+
+        sensor_message["im"] = last_image
+        sensor_message["fr"] = fr_resp
+        sensor_message["res"] = res_resp
+        sensor_message["exp"] = ex_resp
+        sensor_message["shu"] = sh_resp
+
+        sensor_message['ty'] = "camera"
+
+        binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
+
+        if websocket_enabled:
+            try:
+                websocket_queue.put(binary_packet)
+            except Full:
+                logger.warning("websocket queue full")
+
+        if rfm69_enabled:
+            try:
+                radio_queue.put(binary_packet)
+            except Full:
+                logger.warning("radio queue full")
+
+        if awsiot_enabled:
+            try:
+                awsiot_queue.put(binary_packet)
+            except Full:
+                logger.warning("aws queue full")
+
+        if mqtt_enabled:
+            try:
+                mqtt_queue.put(binary_packet)
+            except Full:
+                logger.warning("mqtt queue full")
+
+
 if __name__ == "__main__":
     if web_enabled:
         logger.info('Publishing mDNS service...')
@@ -504,6 +543,9 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
         sensor_task = loop.create_task(sensor_loop())
 
+        if camera_enabled:
+            camera_task = loop.create_task(camera_loop())
+
         if websocket_enabled:
             websocket_task = loop.create_task(websocket_loop())
 
@@ -525,6 +567,9 @@ if __name__ == "__main__":
     except Exception:
         logger.exception("Exception occurred during loop")
     finally:
+        if camera_enabled:
+            camera_shutdown = True
+
         if rfm69_enabled:
             # try to ensure everything gets reset
             radio_shutdown = True
