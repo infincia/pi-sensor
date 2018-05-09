@@ -376,7 +376,7 @@ async def websocket_loop():
     websocket = await websockets.connect(gateway_uri)
 
     while True:
-        time.sleep(0.1)
+        await asyncio.sleep(0.1)
 
         if websocket_shutdown:
             break
@@ -434,7 +434,7 @@ async def sensor_loop():
         camera.framerate_range = (0.1, 30)
         camera.start_preview()
         logger.info('Waiting for camera module warmup...')
-        time.sleep(3)
+        await asyncio.sleep(3)
    
     while True:
         await asyncio.sleep(0.1)
