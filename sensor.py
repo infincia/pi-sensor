@@ -333,7 +333,7 @@ async def websocket_loop():
             websocket = await websockets.connect(gateway_uri)
 
         try:
-            packet = websocket_queue.get(timeout = 0.1)
+            packet = websocket_queue.get(block = False)
         except Empty:
             continue
         
