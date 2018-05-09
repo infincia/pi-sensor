@@ -429,7 +429,7 @@ async def sensor_loop():
             try:
                 websocket_queue.put(binary_packet)
             except Full:
-                logger.warning("websocket queue full")
+                logger.info("websocket queue full")
 
         if rfm69_enabled:
             logger.debug("sending sensor packet to radio")
@@ -437,7 +437,7 @@ async def sensor_loop():
             try:
                 radio_queue.put(binary_packet)
             except Full:
-                logger.warning("radio queue full")
+                logger.debug("radio queue full")
 
         if awsiot_enabled:
             logger.debug("sending sensor packet to aws")
@@ -445,7 +445,7 @@ async def sensor_loop():
             try:
                 awsiot_queue.put(binary_packet)
             except Full:
-                logger.warning("aws queue full")
+                logger.debug("aws queue full")
 
         if mqtt_enabled:
             logger.debug("sending sensor packet to mqtt")
@@ -453,7 +453,7 @@ async def sensor_loop():
             try:
                 mqtt_queue.put(binary_packet)
             except Full:
-                logger.warning("mqtt queue full")
+                logger.debug("mqtt queue full")
 
 
 async def camera_loop():
@@ -508,7 +508,7 @@ async def camera_loop():
             try:
                 websocket_queue.put(binary_packet)
             except Full:
-                logger.warning("websocket queue full")
+                logger.info("websocket queue full")
 
         if rfm69_enabled:
             logger.debug("sending camera packet to radio")
@@ -516,7 +516,7 @@ async def camera_loop():
             try:
                 radio_queue.put(binary_packet)
             except Full:
-                logger.warning("radio queue full")
+                logger.debug("radio queue full")
 
         if awsiot_enabled:
             logger.debug("sending camera packet to aws")
@@ -524,7 +524,7 @@ async def camera_loop():
             try:
                 awsiot_queue.put(binary_packet)
             except Full:
-                logger.warning("aws queue full")
+                logger.debug("aws queue full")
 
         if mqtt_enabled:
             logger.debug("sending camera packet to mqtt")
@@ -532,7 +532,7 @@ async def camera_loop():
             try:
                 mqtt_queue.put(binary_packet)
             except Full:
-                logger.warning("mqtt queue full")
+                logger.debug("mqtt queue full")
 
 
 if __name__ == "__main__":
