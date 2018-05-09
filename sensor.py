@@ -344,7 +344,7 @@ async def websocket_loop():
             logger.exception('Websocket exception occurred')
 
 
-    websocket.close()
+    await websocket.close()
 
 
 def awsiot_loop():
