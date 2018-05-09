@@ -553,12 +553,15 @@ if __name__ == "__main__":
 
         if rfm69_enabled:
             radio_thread = threading.Thread(target = radio_loop, name = "radio_thread")
+            radio_thread.start()
 
         if awsiot_enabled:
             awsiot_thread = threading.Thread(target = awsiot_loop, name = "awsiot_thread")
+            awsiot_thread.start()
 
         if mqtt_enabled:
             mqtt_thread = threading.Thread(target = mqtt_loop, name = "mqtt_thread")
+            mqtt_thread.start()
 
         loop.run_forever()
 
