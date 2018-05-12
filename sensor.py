@@ -119,8 +119,6 @@ if camera_enabled:
     exposure_mode = conf['camera']['exposure_mode']
     use_video_port = conf['camera']['use_video_port']
 
-    camera = picamera.PiCamera()
-
     camera_shutdown = False
 
 
@@ -499,80 +497,83 @@ async def sensor_loop():
 def camera_loop():
     logger.info('Starting camera loop...')
 
-    camera.rotation = rotation
-    camera.resolution = resolution
-    camera.framerate = fps
-    camera.shutter_speed = shutter_speed
-    camera.sensor_mode = sensor_mode
-    camera.exposure_mode = exposure_mode
-    camera.framerate_range = (0.1, 30)
-    camera.start_preview()
-    logger.info('Waiting for camera module warmup...')
-    time.sleep(3)
-   
-    while True:
-        time.sleep(0.1)
 
-        sensor_message = {"n": DEVICE_NAME}
+    with picamera.PiCamera() as camera:
+        camera.rotation = rotation
+        camera.resolution = resolution
+        camera.framerate = fps
+        camera.shutter_speed = shutter_speed
+        camera.sensor_mode = sensor_mode
+        camera.exposure_mode = exposure_mode
+        camera.framerate_range = (0.1, 30)
 
-        logger.debug("Capturing new image")
+        camera.start_preview()
 
-        cap_start = time.time()
-        last_image = capture_image()
-        cap_end = time.time()
-        logger.debug("Capture took %f sec.", (cap_end - cap_start))
+        time.sleep(3)
 
-        width, height = camera.resolution
-        res_resp = "{}x{}".format(width, height).encode('utf-8')
+        logger.info('Waiting for camera module warmup...')
 
-        fr_resp = float(camera.framerate)
+        try:
+            while True:
+                sensor_message = {"n": DEVICE_NAME}
 
-        ex_resp = "{}".format(camera.exposure_mode)
+                cap_start = time.time()
+                last_image = capture_image(camera)
+                cap_end = time.time()
+                logger.debug("Capture took %f sec.", (cap_end - cap_start))
 
-        sh_resp = float(camera.shutter_speed)
+                width, height = camera.resolution
+                res_resp = "{}x{}".format(width, height).encode('utf-8')
 
-        sensor_message["im"] = last_image
-        sensor_message["fr"] = fr_resp
-        sensor_message["res"] = res_resp
-        sensor_message["exp"] = ex_resp
-        sensor_message["shu"] = sh_resp
+                fr_resp = float(camera.framerate)
 
-        sensor_message['ty'] = "camera"
+                ex_resp = "{}".format(camera.exposure_mode)
 
-        binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
+                sh_resp = float(camera.shutter_speed)
 
-        if websocket_enabled:
-            logger.debug("sending camera packet to websocket")
+                sensor_message["im"] = last_image
+                sensor_message["fr"] = fr_resp
+                sensor_message["res"] = res_resp
+                sensor_message["exp"] = ex_resp
+                sensor_message["shu"] = sh_resp
 
-            try:
-                websocket_queue.put(binary_packet)
-            except Full:
-                logger.info("websocket queue full")
+                sensor_message['ty'] = "camera"
 
-        if rfm69_enabled:
-            logger.debug("sending camera packet to radio")
+                binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
 
-            try:
-                radio_queue.put(binary_packet)
-            except Full:
-                logger.debug("radio queue full")
+                if rfm69_enabled:
+                    logger.debug("sending camera packet to radio")
 
-        if awsiot_enabled:
-            logger.debug("sending camera packet to aws")
+                    try:
+                        radio_queue.put(binary_packet)
+                    except Full:
+                        logger.debug("radio queue full")
 
-            try:
-                awsiot_queue.put(binary_packet)
-            except Full:
-                logger.debug("aws queue full")
+                if awsiot_enabled:
+                    logger.debug("sending camera packet to aws")
 
-        if mqtt_enabled:
-            logger.debug("sending camera packet to mqtt")
+                    try:
+                        awsiot_queue.put(binary_packet)
+                    except Full:
+                        logger.debug("aws queue full")
 
-            try:
-                mqtt_queue.put(binary_packet)
-            except Full:
-                logger.debug("mqtt queue full")
+                if mqtt_enabled:
+                    logger.debug("sending camera packet to mqtt")
 
+                    try:
+                        mqtt_queue.put(binary_packet)
+                    except Full:
+                        logger.debug("mqtt queue full")
+
+                if websocket_enabled:
+                    logger.debug("sending camera packet to websocket")
+
+                    try:
+                        websocket_queue.send(binary_packet)
+                    except Full:
+                        logger.debug("websocket queue full")
+        finally:
+            pass
 
 if __name__ == "__main__":
     if web_enabled:
