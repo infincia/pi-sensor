@@ -16,6 +16,7 @@ import time
 import uuid
 
 import Adafruit_PureIO.smbus as smbus
+from aiohttp import ClientSession
 import anyconfig
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
@@ -27,7 +28,7 @@ import prctl
 import psutil
 from RFM69 import RFM69
 from RFM69.RFM69registers import RF69_915MHZ
-import websockets
+
 from zeroconf import ServiceInfo, Zeroconf
 
 from webapi import web_loop
@@ -314,7 +315,9 @@ def radio_loop():
 async def websocket_loop():
     logger.info('Starting websocket loop...')
 
-    websocket = await websockets.connect(gateway_uri)
+    session = ClientSession()
+
+    websocket = None
 
     while True:
         await asyncio.sleep(0.1)
@@ -322,10 +325,14 @@ async def websocket_loop():
         if websocket_shutdown:
             break
 
-        if not websocket.open:
-            logger.info('Websocket not open, reconnecting')
-
-            websocket = await websockets.connect(gateway_uri)
+        if websocket is None:
+            logger.info('Websocket not connected, reconnecting')
+            try:
+                websocket = await session.ws_connect(gateway_uri, timeout = 30)
+            except:
+                logger.info('Websocket connection failed, retrying')
+                continue
+            logger.info('Websocket connected')
 
         try:
             packet = websocket_queue.get(block = False)
@@ -333,13 +340,13 @@ async def websocket_loop():
             continue
         
 
+
         try:
-            await websocket.send(packet)
-        except:
-            logger.exception('Websocket exception occurred')
+            await websocket.send_bytes(packet)
+        except Exception:
+            logger.exception('Websocket closed, reconnecting')
+            websocket = None
 
-
-    await websocket.close()
 
 
 def awsiot_loop():
