@@ -439,6 +439,16 @@ async def mqtt_loop():
     mqtt_client.loop_stop(force = True)
 
 
+def _sensor_loop():
+    prctl.set_name("sensor_loop")
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    sensor_task = loop.create_task(sensor_loop())
+
+    loop.run_forever()
+
 async def sensor_loop():
     logger.info('Starting sensor loop...')
 
@@ -605,7 +615,6 @@ if __name__ == "__main__":
 
     try:
         loop = asyncio.get_event_loop()
-        sensor_task = loop.create_task(sensor_loop())
 
         if camera_enabled:
             camera_thread = Thread(target = camera_loop, name = "camera_thread")
@@ -630,6 +639,10 @@ if __name__ == "__main__":
         if mqtt_enabled:
             mqtt_thread = Thread(target = mqtt_loop, name = "mqtt_thread")
             mqtt_thread.start()
+
+
+        sensor_thread = Thread(target = _sensor_loop, name = "sensor_thread")
+        sensor_thread.start()
 
         loop.run_forever()
 
