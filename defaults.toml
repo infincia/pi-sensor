@@ -50,6 +50,6 @@ resolution = "800x600"
 fps = 5
 rotation = 0
 shutter_speed = 0
-sensor_mode = 3
+sensor_mode = 0
 exposure_mode = "night"
 use_video_port = true
