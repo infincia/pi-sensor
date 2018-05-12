@@ -600,7 +600,7 @@ def camera_loop():
                     logger.debug("sending camera packet to websocket")
 
                     try:
-                        websocket_queue.send(binary_packet)
+                        websocket_queue.put(binary_packet)
                     except Full:
                         logger.debug("websocket queue full")
         finally:
