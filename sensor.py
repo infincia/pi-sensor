@@ -20,8 +20,10 @@ import anyconfig
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 import msgpack
+import nnpy
 import paho.mqtt.client as mqtt
 import picamera
+import prctl
 import psutil
 from RFM69 import RFM69
 from RFM69.RFM69registers import RF69_915MHZ
