@@ -6,7 +6,7 @@ After=syslog.target network-online.target
 Type=simple
 ExecStart=/opt/pi-sensor/sensor.py
 Restart=always
-RestartSec=5
+RestartSec=30
 KillMode=process
 
 [Install]
