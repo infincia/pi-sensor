@@ -110,6 +110,7 @@ if websocket_enabled:
     websocket_shutdown = False
 
 if camera_enabled:
+    streaming_camera = conf['camera']['streaming']
     fps = conf['camera']['fps']
     resolution = conf['camera']['resolution']
     rotation = conf['camera']['rotation']
