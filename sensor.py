@@ -294,6 +294,16 @@ def radio_loop():
     radio.shutdown()
 
 
+def _websocket_loop():
+    prctl.set_name("websocket_loop")
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    websocket_task = loop.create_task(websocket_loop())
+
+    loop.run_forever()
+
 async def websocket_loop():
     logger.info('Starting websocket loop...')
 
@@ -602,7 +612,8 @@ if __name__ == "__main__":
             camera_thread.start()
 
         if websocket_enabled:
-            websocket_task = loop.create_task(websocket_loop())
+            websocket_thread = threading.Thread(target = _websocket_loop, name = "websocket_thread")
+            websocket_thread.start()
 
         if web_enabled:
             zeroconf.register_service(info)
