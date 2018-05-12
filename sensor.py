@@ -668,8 +668,12 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
 
         if camera_enabled:
-            camera_thread = Thread(target = camera_loop, name = "camera_thread")
-            camera_thread.start()
+            if streaming_camera:
+                raspivid_thread = Thread(target = raspivid_loop, name = "raspivid_thread")
+                raspivid_thread.start()
+            else:
+                camera_thread = Thread(target = camera_loop, name = "camera_thread")
+                camera_thread.start()
 
         if websocket_enabled:
             websocket_thread = Thread(target = _websocket_loop, name = "websocket_thread")
