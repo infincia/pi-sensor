@@ -9,6 +9,7 @@ import logging
 import os
 import platform
 from queue import Queue, Empty, Full
+import subprocess
 import socket
 import sys
 from threading import Thread
@@ -604,6 +605,44 @@ def camera_loop():
                         logger.debug("websocket queue full")
         finally:
             pass
+
+
+def raspivid_loop():
+    prctl.set_name("raspivid_loop")
+
+    logger.info('Starting raspivid loop...')
+
+    width, height = tuple(resolution.split("x"))
+
+    proc = subprocess.Popen(["/usr/bin/raspivid", "-rot", str(rotation), "-vf", "-hf", "-t", "0", "-w", width, "-h", height, "-pf", "baseline", "-fps", str(fps), "-b", streaming_bitrate, "-o", "-"], shell = False, stdout = subprocess.PIPE)
+
+    raspivid = proc.stdout
+
+    while True:
+        if camera_shutdown:
+            break
+
+        block = raspivid.read(16384)
+        if not block:
+            break
+
+        sensor_message = {"n": DEVICE_NAME}
+        sensor_message["vid"] = block
+        sensor_message['ty'] = "camera"
+
+        binary_packet = msgpack.packb(sensor_message, use_bin_type = True)
+
+        if websocket_enabled:
+            logger.info("sending camera video block to websocket")
+
+            try:
+                websocket_queue.put(binary_packet, block = False)
+            except Full:
+                logger.exception("websocket queue full")
+    
+    proc.kill()
+    proc.wait()
+
 
 if __name__ == "__main__":
     prctl.set_name("pi-sensor")
