@@ -464,7 +464,7 @@ async def sensor_loop():
             logger.debug("sending sensor packet to websocket")
 
             try:
-                websocket_queue.put(binary_packet)
+                websocket_queue.put(binary_packet, block = False)
             except Full:
                 logger.info("websocket queue full")
 
@@ -472,7 +472,7 @@ async def sensor_loop():
             logger.debug("sending sensor packet to radio")
 
             try:
-                radio_queue.put(binary_packet)
+                radio_queue.put(binary_packet, block = False)
             except Full:
                 logger.debug("radio queue full")
 
@@ -480,7 +480,7 @@ async def sensor_loop():
             logger.debug("sending sensor packet to aws")
 
             try:
-                awsiot_queue.put(binary_packet)
+                awsiot_queue.put(binary_packet, block = False)
             except Full:
                 logger.debug("aws queue full")
 
@@ -488,7 +488,7 @@ async def sensor_loop():
             logger.debug("sending sensor packet to mqtt")
 
             try:
-                mqtt_queue.put(binary_packet)
+                mqtt_queue.put(binary_packet, block = False)
             except Full:
                 logger.debug("mqtt queue full")
 
