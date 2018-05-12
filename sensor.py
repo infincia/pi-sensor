@@ -307,6 +307,8 @@ async def websocket_loop():
         await asyncio.sleep(0.1)
 
         if websocket_shutdown:
+            await websocket.close()
+            await session.close()
             break
 
         if websocket is None:
