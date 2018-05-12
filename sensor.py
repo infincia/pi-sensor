@@ -431,10 +431,8 @@ async def mqtt_loop():
 
 async def sensor_loop():
     logger.info('Starting sensor loop...')
-   
-    while True:
-        await asyncio.sleep(60)
 
+    while True:
         sensor_message = {"n": DEVICE_NAME}
 
         if si7021_enabled:
@@ -494,6 +492,7 @@ async def sensor_loop():
             except Full:
                 logger.debug("mqtt queue full")
 
+        await asyncio.sleep(60)
 
 def camera_loop():
     logger.info('Starting camera loop...')
