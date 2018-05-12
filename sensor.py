@@ -20,6 +20,7 @@ from aiohttp import ClientSession
 import anyconfig
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
+
 import msgpack
 import nnpy
 import paho.mqtt.client as mqtt
