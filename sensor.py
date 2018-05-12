@@ -346,6 +346,8 @@ async def websocket_loop():
 
 
 def awsiot_loop():
+    prctl.set_name("awsiot_loop")
+
     logger.info('Starting AWS IoT loop...')
 
     awsiot = AWSIoTMQTTShadowClient(DEVICE_NAME)
