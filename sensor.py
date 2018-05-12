@@ -230,7 +230,7 @@ def get_local_mac():
     return mac
 
 
-def capture_image():
+def capture_image(camera):
     _image_stream = io.BytesIO()
     camera.annotate_background = picamera.Color('black')
     camera.annotate_text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
