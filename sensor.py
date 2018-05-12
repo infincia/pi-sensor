@@ -392,6 +392,8 @@ def awsiot_loop():
 
 
 async def mqtt_loop():
+    prctl.set_name("mqtt_loop")
+
     logger.info('Starting MQTT loop...')
 
     def on_mqtt_connect(client, userdata, flags, rc):
