@@ -521,6 +521,8 @@ async def sensor_loop():
         await asyncio.sleep(60)
 
 def camera_loop():
+    prctl.set_name("camera_loop")
+
     logger.info('Starting camera loop...')
 
 
