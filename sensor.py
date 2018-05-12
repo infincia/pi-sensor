@@ -84,14 +84,6 @@ if awsiot_enabled:
     awsiot_cert = conf['awsiot']['cert']
     awsiot_key = conf['awsiot']['key']
 
-    awsiot = AWSIoTMQTTClient(DEVICE_NAME)
-    awsiot.configureEndpoint(awsiot_endpoint, 8883)
-    awsiot.configureCredentials(awsiot_ca, awsiot_key, awsiot_cert)
-    awsiot.configureOfflinePublishQueueing(-1)
-    awsiot.configureDrainingFrequency(2)
-    awsiot.configureConnectDisconnectTimeout(10)
-    awsiot.configureMQTTOperationTimeout(5)
-    
     awsiot_queue = Queue(maxsize=2)
 
     awsiot_shutdown = False
@@ -353,7 +345,14 @@ async def websocket_loop():
 def awsiot_loop():
     logger.info('Starting AWS IoT loop...')
 
+    awsiot = AWSIoTMQTTShadowClient(DEVICE_NAME)
+    awsiot.configureEndpoint(awsiot_endpoint, 8883)
+    awsiot.configureCredentials(awsiot_ca, awsiot_key, awsiot_cert)
+    awsiot.configureConnectDisconnectTimeout(10)
+    awsiot.configureMQTTOperationTimeout(5)
+
     awsiot.connect()
+    shadow = awsiot.createShadowHandlerWithName(DEVICE_NAME, True)
 
     while True:
         time.sleep(0.1)
@@ -363,7 +362,26 @@ def awsiot_loop():
 
         try:
             packet = awsiot_queue.get(timeout = 0.1)
-            awsiot.publish(DEVICE_NAME, packet, 0)
+
+            o = msgpack.unpackb(packet)
+
+            logging.info("aws dict: %s", o)
+
+            doc = {
+                "state": {
+                    "reported": {
+                        "temperature": o[b't'],
+                        "humidity": o[b'h']
+                    }
+                }
+            }
+            logging.info("aws doc: %s", doc)
+
+            s = json.dumps(doc)
+            
+            logging.info("aws json: %s", s)
+
+            shadow.shadowUpdate(s, None, 5)
         except Empty:
             pass
         except Exception:
