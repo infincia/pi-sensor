@@ -605,6 +605,8 @@ def camera_loop():
             pass
 
 if __name__ == "__main__":
+    prctl.set_name("pi-sensor")
+
     if web_enabled:
         logger.info('Publishing mDNS service...')
         zeroconf = Zeroconf()
