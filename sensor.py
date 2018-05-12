@@ -96,22 +96,6 @@ if mqtt_enabled:
     mqtt_endpoint = conf['mqtt']['endpoint']
     mqtt_port = conf['mqtt']['port']
 
-    def on_mqtt_connect(client, userdata, flags, rc):
-        logger.info("MQTT connected with result code: %s", str(rc))
-
-    def on_mqtt_disconnect(client, userdata, rc):
-        logger.info("MQTT disconnected with result code: %s", str(rc))
-
-    # The callback for when a PUBLISH message is received from the server.
-    def on_mqtt_message(client, userdata, msg):
-        logger.info("MQTT message <%s>: %s", msg.topic, str(msg.payload))
-
-    mqtt_client = mqtt.Client()
-    mqtt_client.enable_logger(logger)
-    mqtt_client.on_connect = on_mqtt_connect
-    mqtt_client.on_disconnect = on_mqtt_disconnect
-    mqtt_client.on_message = on_mqtt_message
-
     mqtt_queue = Queue(maxsize=2)
 
     mqtt_shutdown = False
@@ -399,6 +383,22 @@ def awsiot_loop():
 
 async def mqtt_loop():
     logger.info('Starting MQTT loop...')
+
+    def on_mqtt_connect(client, userdata, flags, rc):
+        logger.info("MQTT connected with result code: %s", str(rc))
+
+    def on_mqtt_disconnect(client, userdata, rc):
+        logger.info("MQTT disconnected with result code: %s", str(rc))
+
+    # The callback for when a PUBLISH message is received from the server.
+    def on_mqtt_message(client, userdata, msg):
+        logger.info("MQTT message <%s>: %s", msg.topic, str(msg.payload))
+
+    mqtt_client = mqtt.Client()
+    mqtt_client.enable_logger(logger)
+    mqtt_client.on_connect = on_mqtt_connect
+    mqtt_client.on_disconnect = on_mqtt_disconnect
+    mqtt_client.on_message = on_mqtt_message
 
     mqtt_client.connect(mqtt_endpoint, mqtt_port, 60)
 
