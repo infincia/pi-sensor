@@ -18,6 +18,7 @@ import uuid
 import Adafruit_PureIO.smbus as smbus
 import anyconfig
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 import msgpack
 import paho.mqtt.client as mqtt
 import picamera
