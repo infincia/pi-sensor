@@ -45,6 +45,7 @@ port = 8765
 [camera]
 enabled = false
 streaming = false
+streaming_bitrate = 512000
 resolution = "800x600"
 fps = 5
 rotation = 0

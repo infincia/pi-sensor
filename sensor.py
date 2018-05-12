@@ -112,6 +112,7 @@ if websocket_enabled:
 
 if camera_enabled:
     streaming_camera = conf['camera']['streaming']
+    streaming_bitrate = conf['camera']['streaming_bitrate']
     fps = conf['camera']['fps']
     resolution = conf['camera']['resolution']
     rotation = conf['camera']['rotation']
