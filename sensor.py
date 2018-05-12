@@ -11,7 +11,7 @@ import platform
 from queue import Queue, Empty, Full
 import socket
 import sys
-import threading
+from threading import Thread
 import time
 import uuid
 
@@ -608,11 +608,11 @@ if __name__ == "__main__":
         sensor_task = loop.create_task(sensor_loop())
 
         if camera_enabled:
-            camera_thread = threading.Thread(target = camera_loop, name = "camera_thread")
+            camera_thread = Thread(target = camera_loop, name = "camera_thread")
             camera_thread.start()
 
         if websocket_enabled:
-            websocket_thread = threading.Thread(target = _websocket_loop, name = "websocket_thread")
+            websocket_thread = Thread(target = _websocket_loop, name = "websocket_thread")
             websocket_thread.start()
 
         if web_enabled:
@@ -620,15 +620,15 @@ if __name__ == "__main__":
             web_task = loop.create_task(web_loop())
 
         if rfm69_enabled:
-            radio_thread = threading.Thread(target = radio_loop, name = "radio_thread")
+            radio_thread = Thread(target = radio_loop, name = "radio_thread")
             radio_thread.start()
 
         if awsiot_enabled:
-            awsiot_thread = threading.Thread(target = awsiot_loop, name = "awsiot_thread")
+            awsiot_thread = Thread(target = awsiot_loop, name = "awsiot_thread")
             awsiot_thread.start()
 
         if mqtt_enabled:
-            mqtt_thread = threading.Thread(target = mqtt_loop, name = "mqtt_thread")
+            mqtt_thread = Thread(target = mqtt_loop, name = "mqtt_thread")
             mqtt_thread.start()
 
         loop.run_forever()
