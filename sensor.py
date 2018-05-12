@@ -242,6 +242,8 @@ def capture_image():
 
 
 def radio_loop():
+    prctl.set_name("radio_loop")
+
     logger.info('Starting radio loop...')
 
     radio = RFM69.RFM69(freqBand = RF69_915MHZ, nodeID = rfm69_node, networkID = rfm69_network, isRFM69HW = True, intPin = 18, rstPin = 22, spiBus = 0, spiDevice = 0)
