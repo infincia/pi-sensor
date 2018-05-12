@@ -260,10 +260,9 @@ def radio_loop():
 
         try:
             packet = radio_queue.get(timeout = 0.1)
-  
-            logger.info("Sending binary packet to %s", rfm69_gateway)
+            logger.debug("Sending binary packet to %s", rfm69_gateway)
             if radio.sendWithRetry(rfm69_gateway, packet, 3, 20):
-                logger.info("Radio ack recieved")
+                logger.debug("Radio ack recieved")
         except Empty:
             pass
 
@@ -273,7 +272,7 @@ def radio_loop():
 
         received_message = "".join([chr(letter) for letter in radio.DATA])
 
-        logger.info("Received message from %s<%s dB>", radio.SENDERID, radio.RSSI)
+        logger.debug("Received message from %s<%s dB>", radio.SENDERID, radio.RSSI)
 
         if radio.ACKRequested():
             radio.sendACK()
