@@ -523,6 +523,14 @@ async def sensor_loop():
             except Full:
                 logger.debug("mqtt queue full")
 
+        if homekit_enabled:
+            logger.info("sending sensor packet to homekit")
+
+            try:
+                homekit_queue.put(binary_packet, block = False)
+            except Full:
+                logger.debug("homekit queue full")
+
         await asyncio.sleep(15)
 
 def camera_loop():
