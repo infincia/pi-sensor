@@ -9,6 +9,7 @@ import logging
 import os
 import platform
 from queue import Queue, Empty, Full
+import signal
 import subprocess
 import socket
 import sys
@@ -28,6 +29,10 @@ import paho.mqtt.client as mqtt
 import picamera
 import prctl
 import psutil
+from pyhap.accessory import Accessory
+from pyhap.accessory_driver import AccessoryDriver
+from pyhap.const import CATEGORY_SENSOR
+import pyhap.loader as loader
 from RFM69 import RFM69
 from RFM69.RFM69registers import RF69_915MHZ
 
@@ -48,6 +53,7 @@ awsiot_enabled = conf['awsiot']['enabled']
 mqtt_enabled = conf['mqtt']['enabled']
 camera_enabled = conf['camera']['enabled']
 websocket_enabled = conf['websocket']['enabled']
+homekit_enabled = conf['homekit']['enabled']
 
 disk_enabled = conf['disk']['enabled']
 mem_enabled = conf['mem']['enabled']
@@ -124,6 +130,12 @@ if camera_enabled:
 
     camera_shutdown = False
 
+
+
+if homekit_enabled:
+    logger.info("HomeKit enabled")
+    homekit_queue = Queue(maxsize = 2)
+    homekit_shutdown = False
 
 async def get_sensor_values():
     temperature = None
@@ -644,6 +656,86 @@ def raspivid_loop():
     proc.wait()
 
 
+class TemperatureSensor(Accessory):
+    """Temperature sensor accessory."""
+
+    category = CATEGORY_SENSOR
+
+    def __init__(self, *args, **kwargs):
+        """Here, we just store a reference to the current temperature characteristic and
+        add a method that will be executed every time its value changes.
+        """
+        # If overriding this method, be sure to call the super's implementation first.
+        super().__init__(*args, **kwargs)
+
+        # Add the services that this Accessory will support with add_preload_service here
+        serv_temperature = self.add_preload_service('TemperatureSensor')
+        serv_humidity = self.add_preload_service('HumiditySensor')
+
+        self.temp_char = serv_temperature.get_characteristic('CurrentTemperature')
+        self.humidity_char = serv_humidity.get_characteristic('CurrentRelativeHumidity')
+
+        # Having a callback is optional, but you can use it to add functionality.
+        self.temp_char.setter_callback = self.temperature_changed
+        self.humidity_char.setter_callback = self.humidity_changed
+
+    def temperature_changed(self, value):
+        """This will be called every time the value of the CurrentTemperature
+        is changed. Use setter_callbacks to react to user actions, e.g. setting the
+        lights On could fire some GPIO code to turn on a LED (see pyhap/accessories/LightBulb.py).
+        """
+        logger.info('Temperature changed to: ', value)
+
+    def humidity_changed(self, value):
+        """This will be called every time the value of the CurrentHumidity
+        is changed. Use setter_callbacks to react to user actions, e.g. setting the
+        lights On could fire some GPIO code to turn on a LED (see pyhap/accessories/LightBulb.py).
+        """
+        logger.info('Humidity changed to: ', value)
+
+
+    @Accessory.run_at_interval(5)
+    def run(self):
+        """We override this method to implement what the accessory will do when it is
+        started.
+
+        The decorator runs this method every 5 seconds.
+        """
+        try:
+            packet = homekit_queue.get(timeout = 2.0)
+            o = msgpack.unpackb(packet)
+            temperature = o[b't']
+            humidity = o[b'h']
+
+            logger.info("Updated in HomeKit temperature class: %d F, %d", temperature, humidity)
+            temperature_celcius = (temperature - 32) / 1.8
+
+
+            self.temp_char.set_value(temperature_celcius)
+            self.humidity_char.set_value(humidity)
+
+        except Empty:
+            pass
+        except Exception:
+            logger.exception("Failed to process sensor packet in HomeKit temperature class")
+
+
+    # The `stop` method can be `async` as well
+    def stop(self):
+        """We override this method to clean up any resources or perform final actions, as
+        this is called by the AccessoryDriver when the Accessory is being stopped.
+        """
+        logger.info('Stopping temperatureaccessory')
+
+
+def _homekit_loop(driver):
+    prctl.set_name("homekit_loop")
+    host = platform.node()
+    acc = TemperatureSensor(driver, host)
+    driver.add_accessory(accessory=acc)
+    driver.start()
+
+
 if __name__ == "__main__":
     prctl.set_name("pi-sensor")
 
@@ -695,6 +787,16 @@ if __name__ == "__main__":
             mqtt_thread = Thread(target = mqtt_loop, name = "mqtt_thread")
             mqtt_thread.start()
 
+        if homekit_enabled:
+            # Start the accessory on port 51826
+            driver = AccessoryDriver(port=51826, pincode=b"053-58-197")
+
+            # We want SIGTERM (kill) to be handled by the driver itself,
+            # so that it can gracefully stop the accessory, server and advertising.
+            # signal.signal(signal.SIGTERM, driver.signal_handler)
+
+            homekit_thread = Thread(target = _homekit_loop, args = (driver,), name = "homekit_thread")
+            homekit_thread.start()
 
         sensor_thread = Thread(target = _sensor_loop, name = "sensor_thread")
         sensor_thread.start()
@@ -719,6 +821,9 @@ if __name__ == "__main__":
         
         if websocket_enabled:
             websocket_shutdown = True
+
+        if homekit_enabled:
+            homekit_shutdown = True
 
         if web_enabled:
             logger.info("Removing mDNS service...")
