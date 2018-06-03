@@ -556,7 +556,6 @@ def camera_loop():
                     break
 
                 stream_buffer.seek(0)
-                # last_image = Image.open(stream_buffer)
                 last_image = stream_buffer.getvalue()
                 stream_buffer.truncate()
                 stream_buffer.seek(0)
