@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: bad-whitespace
 
 import argparse
 import asyncio
