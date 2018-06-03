@@ -13,3 +13,4 @@ git+https://github.com/Gadgetoid/py-spidev.git
 python-prctl
 nnpy
 cffi
+Pillow
