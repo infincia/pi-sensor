@@ -548,7 +548,7 @@ def camera_loop():
         camera.shutter_speed = shutter_speed
         camera.sensor_mode = sensor_mode
         camera.exposure_mode = exposure_mode
-        camera.framerate_range = (0.1, 30)
+        camera.framerate_range = (0.1, fps)
 
         camera.start_preview()
 
