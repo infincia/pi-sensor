@@ -546,8 +546,8 @@ def camera_loop():
         camera.exposure_mode = exposure_mode
         camera.framerate_range = (0.1, fps)
 
-        camera.annotate_background = picamera.Color('black')
-        camera.annotate_text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # camera.annotate_background = picamera.Color('black')
+        # camera.annotate_text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         camera.start_preview()
 
