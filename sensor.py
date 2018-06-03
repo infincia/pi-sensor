@@ -541,10 +541,8 @@ def camera_loop():
     logger.info('Starting camera loop...')
 
 
-    with picamera.PiCamera() as camera:
+    with picamera.PiCamera(resolution = resolution, framerate = fps) as camera:
         camera.rotation = rotation
-        camera.resolution = resolution
-        camera.framerate = fps
         camera.shutter_speed = shutter_speed
         camera.sensor_mode = sensor_mode
         camera.exposure_mode = exposure_mode
