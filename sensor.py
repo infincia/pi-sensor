@@ -390,8 +390,6 @@ def awsiot_loop():
 
             o = msgpack.unpackb(packet)
 
-            logging.info("aws dict: %s", o)
-
             doc = {
                 "state": {
                     "reported": {
@@ -400,11 +398,8 @@ def awsiot_loop():
                     }
                 }
             }
-            logging.info("aws doc: %s", doc)
 
             s = json.dumps(doc)
-            
-            logging.info("aws json: %s", s)
 
             shadow.shadowUpdate(s, None, 5)
         except Empty:
