@@ -596,7 +596,8 @@ def camera_loop():
                     logger.debug("sending camera packet to aws")
 
                     try:
-                        awsiot_queue.put(binary_packet)
+                        pass
+                        # awsiot_queue.put(binary_packet)
                     except Full:
                         logger.debug("aws queue full")
 
