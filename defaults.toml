@@ -22,6 +22,9 @@ enabled = false
 endpoint = "iot.eclipse.org"
 port = 1883
 
+[homekit]
+enabled = false
+
 [awsiot]
 enabled = false
 endpoint = "a2ilo8j9t13k8m.iot.us-east-1.amazonaws.com"
