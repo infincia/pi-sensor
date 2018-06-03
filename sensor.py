@@ -117,7 +117,7 @@ if websocket_enabled:
     websocket_port = conf['websocket']['port']
     gateway_uri = 'wss://{0}:{1}/pub/{2}'.format(websocket_endpoint, websocket_port, platform.node())
 
-    websocket_queue = Queue(maxsize = 2)
+    websocket_queue = Queue(maxsize = 1)
 
     websocket_shutdown = False
 
