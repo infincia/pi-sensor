@@ -2,6 +2,12 @@ from aiohttp import web
 
 last_image = None
 
+
+class WebHandler():
+    def __init__():
+        pass
+
+
 async def web_index(request):
     return web.Response(text = 'Hello Aiohttp!')
 
