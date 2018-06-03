@@ -341,13 +341,13 @@ async def websocket_loop():
             break
 
         if websocket is None:
-            logger.info('Websocket not connected, reconnecting')
+            logger.debug('Websocket not connected, reconnecting')
             try:
                 websocket = await session.ws_connect(gateway_uri, timeout = 30)
             except:
-                logger.info('Websocket connection failed, retrying')
+                logger.debug('Websocket connection failed, retrying')
                 continue
-            logger.info('Websocket connected')
+            logger.debug('Websocket connected')
 
         try:
             packet = websocket_queue.get(block = False)
