@@ -43,7 +43,7 @@ encryption_key = "1234567891011121"
 [websocket]
 enabled = false
 endpoint = "gateway.example.com"
-port = 8765
+port = 8443
 
 [camera]
 enabled = false
