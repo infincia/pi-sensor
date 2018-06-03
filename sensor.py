@@ -346,6 +346,7 @@ async def websocket_loop():
                 websocket = await session.ws_connect(gateway_uri, timeout = 30)
             except:
                 logger.debug('Websocket connection failed, retrying')
+                websocket = None
                 continue
             logger.debug('Websocket connected')
 
