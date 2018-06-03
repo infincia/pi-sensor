@@ -533,7 +533,7 @@ async def sensor_loop():
             except Full:
                 logger.debug("mqtt queue full")
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(15)
 
 def camera_loop():
     prctl.set_name("camera_loop")
