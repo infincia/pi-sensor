@@ -250,17 +250,6 @@ def get_local_mac():
     return mac
 
 
-def capture_image(camera):
-    _image_stream = io.BytesIO()
-    camera.annotate_background = picamera.Color('black')
-    camera.annotate_text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    camera.capture(_image_stream, format = 'jpeg', quality = 10, thumbnail = None, use_video_port = use_video_port)
-    _image_stream.seek(0)
-    _last_image = _image_stream.getvalue()
-    _image_stream.close()
-    return _last_image
-
-
 def radio_loop():
     prctl.set_name("radio_loop")
 
@@ -549,20 +538,31 @@ def camera_loop():
         camera.exposure_mode = exposure_mode
         camera.framerate_range = (0.1, fps)
 
+        camera.annotate_background = picamera.Color('black')
+        camera.annotate_text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
         camera.start_preview()
 
         time.sleep(3)
 
         logger.info('Waiting for camera module warmup...')
 
+
+        stream_buffer = io.BytesIO()
+            
         try:
-            while True:
+            for frame in camera.capture_continuous(stream_buffer, format = "jpeg", quality = 10, thumbnail = None, use_video_port = use_video_port):
+                if frame == None:
+                    break
+
+                stream_buffer.seek(0)
+                # last_image = Image.open(stream_buffer)
+                last_image = stream_buffer.getvalue()
+                stream_buffer.truncate()
+                stream_buffer.seek(0)
+
                 sensor_message = {"n": DEVICE_NAME}
 
-                cap_start = time.time()
-                last_image = capture_image(camera)
-                cap_end = time.time()
-                logger.debug("Capture took %f sec.", (cap_end - cap_start))
 
                 width, height = camera.resolution
                 res_resp = "{}x{}".format(width, height).encode('utf-8')
@@ -616,7 +616,7 @@ def camera_loop():
                     except Full:
                         logger.debug("websocket queue full")
         finally:
-            pass
+            stream_buffer.close()
 
 
 def raspivid_loop():
