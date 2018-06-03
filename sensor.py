@@ -43,6 +43,10 @@ from webapi import web_loop
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
 
+logging.getLogger("AWSIoTPythonSDK").setLevel(logging.WARNING)
+logging.getLogger("aiohttp").setLevel(logging.WARNING)
+
+
 
 conf = anyconfig.load(["/opt/pi-sensor/defaults.toml", "/etc/pi-sensor/config.toml"], ignore_missing=True, ac_merge=anyconfig.MS_REPLACE)
 
