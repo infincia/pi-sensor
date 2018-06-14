@@ -627,6 +627,16 @@ def camera_loop():
             stream_buffer.close()
 
 
+class CameraStream(object):
+    def __init__():
+        self.host = platform.node()
+        self.ip = get_local_ip()
+
+
+    def write(self, buf):
+        pass
+
+
 def raspivid_loop():
     prctl.set_name("raspivid_loop")
 
