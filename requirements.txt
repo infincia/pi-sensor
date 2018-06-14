@@ -14,3 +14,4 @@ python-prctl
 nnpy
 cffi
 Pillow
+git+https://github.com/infincia/HAP-python.git#infincia
