@@ -59,6 +59,7 @@ mqtt_enabled = conf['mqtt']['enabled']
 camera_enabled = conf['camera']['enabled']
 websocket_enabled = conf['websocket']['enabled']
 homekit_enabled = conf['homekit']['enabled']
+homekit_pin = conf['homekit']['pin']
 
 disk_enabled = conf['disk']['enabled']
 mem_enabled = conf['mem']['enabled']
@@ -796,7 +797,7 @@ if __name__ == "__main__":
 
         if homekit_enabled:
             # Start the accessory on port 51826
-            driver = AccessoryDriver(port=51826, pincode=b"053-58-197")
+            driver = AccessoryDriver(port=51826, pincode=homekit_pin.encode('utf-8'))
 
             # We want SIGTERM (kill) to be handled by the driver itself,
             # so that it can gracefully stop the accessory, server and advertising.

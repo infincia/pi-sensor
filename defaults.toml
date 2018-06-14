@@ -24,6 +24,7 @@ port = 1883
 
 [homekit]
 enabled = false
+pin = "053-58-197"
 
 [awsiot]
 enabled = false
